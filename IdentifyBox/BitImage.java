@@ -2,6 +2,14 @@
  * BitImage.java
  */
 
+/*
+Some Notes:
+
+BufferedImage class - Allows us to operate directly with image data (retrieving/setting pixel values)
+Raster - data structure that holds image data (allows us to scan image data)
+SampleModel - Interface that allows for pixel extraction.
+*/
+
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.awt.Point;
@@ -22,9 +30,9 @@ class BitImage{
 		printPixelArray(getPixelArray(filename));
 		System.out.println("Modifying the file(for every value that is below 100 we add 15)");
 		System.out.println("Printing the modified file in [0-255] range");
-		printPixelArray(modifyPixelArray(getPixelArray(filename)));
+		printPixelArray(applyHistogramEqualization(getPixelArray(filename)));
 		System.out.println("Writing to an file- output.bmp");
-		writeToImage(modifyPixelArray(getPixelArray(filename)));
+		writeToImage(applyHistogramEqualization(getPixelArray(filename)));
 
 	}
 
@@ -55,6 +63,43 @@ class BitImage{
 				if (arr[i][j] < 100){
 					arr[i][j] += 15;
 				}
+			}
+		}
+
+		return arr;
+	}
+
+	// Histogram Equalization
+	public static int[][] applyHistogramEqualization(int [][] arr){
+
+		int[] H = new int[256];
+
+		// Initialize the Histogram
+		for(int i = 0; i < H.length; i++){
+			H[i] = 0;
+		}
+
+		// Compute the Histogram
+		for (int i = 0; i < arr.length; i++){
+			for (int j = 0; j < arr[i].length; j++){
+					H[arr[i][j]] += 1;
+			}
+		}
+
+		// Compute the cumulative Histogram
+		for(int i = 1; i < 256; i++){
+			H[i] = H[i-1] + H[i];
+		}
+
+		// Normalize the cumulative Histogram
+		for(int i = 0; i < 256; i++){
+			H[i] = H[i] * 255 / (arr.length * arr[0].length);
+		}
+
+		//Modify Image
+		for (int i = 0; i < arr.length; i++){
+			for (int j = 0; j < arr[i].length; j++){
+				arr[i][j] = H[arr[i][j]];
 			}
 		}
 
