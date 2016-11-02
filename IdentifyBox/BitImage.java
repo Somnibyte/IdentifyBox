@@ -28,18 +28,18 @@ class BitImage{
 		System.out.println("Reading an bitmap image" + filename);
 		System.out.println("Printing the file in [0-255] range " + filename);
 		//printPixelArray(getPixelArray(filename));
-		
+
 		//***Histogram process***
 		System.out.println("Modifying the file(for every value that is below 100 we add 15)");
 		System.out.println("Printing the modified file in [0-255] range");
 		//printPixelArray(applyHistogramEqualization(getPixelArray(filename)));
 		System.out.println("Writing to an file- output.bmp");
-		writeToImage(applyHistogramEqualization(getPixelArray(filename)), filename);
-		
+		writeToImage(applyContrast(getPixelArray(filename), 3, 127), "contrast.bmp");
+
 		//***Smoothing process***
-		System.out.println("Now applying smoothing filter...");
-		writeToImage(applySmoothing(getPixelArray(filename), 4, 4), "smoothing_output_size4.bmp");
-		
+		//System.out.println("Now applying smoothing filter...");
+		//writeToImage(applySmoothing(getPixelArray(filename), 4, 4), "smoothing_output_size4.bmp");
+
 	}
 
 
@@ -74,6 +74,21 @@ class BitImage{
 
 		return arr;
 	}
+
+
+
+
+	// Contrast Adjustment
+	public static int[][] applyContrast(int[][] arr, int contrast, int brightness){
+		for (int i = 0; i < arr.length; i++){
+			for (int j = 0; j < arr[i].length; j++){
+				arr[i][j] = contrast*(arr[i][j] - brightness) + brightness;
+			}
+		}
+
+		return arr;
+	}
+
 
 	// Histogram Equalization
 	public static int[][] applyHistogramEqualization(int [][] arr){
@@ -122,7 +137,7 @@ class BitImage{
 		int currentMaxRow = frameY;
 		int currentStartColumn = 0;
 		int currentMaxColumn = frameX;
-		
+
 		//operate on rows
 		while(currentMaxRow < arr.length)
 		{
@@ -131,7 +146,7 @@ class BitImage{
 			while(currentMaxColumn < arr[0].length)
 			{
 				//System.out.println("currentStartColumn = " + currentStartColumn);
-				//gather average of frame 
+				//gather average of frame
 				for(int i=currentStartRow; i<currentMaxRow; i++)
 				{
 					for(int j=currentStartColumn; j<currentMaxColumn; j++)
@@ -139,11 +154,11 @@ class BitImage{
 						sum += arr[i][j];
 					}
 				}
-				
+
 				avg = sum/(frameX*frameY);
 				sum = 0;
-				
-				//overwrite frame values with average 
+
+				//overwrite frame values with average
 				for(int k=currentStartRow; k<currentMaxRow; k++)
 				{
 					for(int y=currentStartColumn; y<currentMaxColumn; y++)
@@ -154,14 +169,14 @@ class BitImage{
 				}
 				currentStartColumn += frameX;
 				currentMaxColumn += frameX;
-				
+
 			}
 			currentStartRow += frameY;
 			currentMaxRow += frameY;
 			currentMaxColumn = frameX;
 			currentStartColumn = 0;
 			//System.out.println("adding to row");
-		}	
+		}
 		return arr;
 	}
 
