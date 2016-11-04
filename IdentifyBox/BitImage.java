@@ -18,7 +18,7 @@ import java.awt.image.SampleModel;
 import java.io.*;
 import javax.imageio.*;
 
-class BitImage{
+public class BitImage{
 
 	private static SampleModel sampleModel;
 
@@ -160,7 +160,7 @@ class BitImage{
 
 
   // New Output Image
-	private static void writeToImage(int [][] arr, String filename) throws IOException, RuntimeException{
+	private void writeToImage(int [][] arr, String filename) throws IOException, RuntimeException{
 
 		WritableRaster raster= Raster.createWritableRaster(sampleModel, new Point(0,0));
     	for(int i=0;i<arr.length;i++)
@@ -195,5 +195,9 @@ class BitImage{
 	public BufferedImage applyHistogramEqualization(String filename) throws IOException{
 		int [][] arr = histogramEqualize(getPixelArray(filename));
 		return new BufferedImage(arr.length,arr[0].length,BufferedImage.TYPE_BYTE_GRAY);
+	}
+
+	public void save(Filename) throws IOException, RuntimeException{
+
 	}
 }
