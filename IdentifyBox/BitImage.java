@@ -22,29 +22,8 @@ class BitImage{
 
 	private static SampleModel sampleModel;
 
-	public static void main(String [] args) throws IOException, RuntimeException{
-
-		String filename = "im1-c.bmp";
-		System.out.println("Reading an bitmap image" + filename);
-		System.out.println("Printing the file in [0-255] range " + filename);
-		//printPixelArray(getPixelArray(filename));
-		
-		//***Histogram process***
-		System.out.println("Modifying the file(for every value that is below 100 we add 15)");
-		System.out.println("Printing the modified file in [0-255] range");
-		//printPixelArray(applyHistogramEqualization(getPixelArray(filename)));
-		System.out.println("Writing to an file- output.bmp");
-		writeToImage(applyHistogramEqualization(getPixelArray(filename)), filename);
-		
-		//***Smoothing process***
-		System.out.println("Now applying smoothing filter...");
-		writeToImage(applySmoothing(getPixelArray(filename), 4, 4), "smoothing_output_size4.bmp");
-		
-	}
-
-
   // Getting pixels from an array
-	public static int [][] getPixelArray(String filename) throws IOException{
+	private  int [][] getPixelArray(String filename) throws IOException{
 
     	BufferedImage image = ImageIO.read(new File(filename));
     	Raster raster = image.getData();
@@ -63,7 +42,7 @@ class BitImage{
 
 
 	// Modify test
-	public static int[][] modifyPixelArray(int [][] arr){
+	private  int[][] modifyPixelArray(int [][] arr){
 		for (int i = 0; i < arr.length; i++){
 			for (int j = 0; j < arr[i].length; j++){
 				if (arr[i][j] < 100){
@@ -76,7 +55,7 @@ class BitImage{
 	}
 
 	// Histogram Equalization
-	public static int[][] applyHistogramEqualization(int [][] arr){
+	private  int[][] histogramEqualize(int [][] arr){
 
 		int[] H = new int[256];
 
@@ -113,7 +92,7 @@ class BitImage{
 	}
 
 	//Smoothing
-	public static int[][] applySmoothing(int[][] arr, int frameX, int frameY) //add dimensions of frame
+	private  int[][] smooth(int[][] arr, int frameX, int frameY) //add dimensions of frame
 	{
 		int sum = 0;
 		int avg;
@@ -166,7 +145,7 @@ class BitImage{
 	}
 
   // Printing pixels
-	public static void printPixelArray(int [][] array2D){
+	private void printPixelArray(int [][] array2D){
 
     	for (int x = 0; x < array2D.length; x++)
     	{
@@ -181,7 +160,7 @@ class BitImage{
 
 
   // New Output Image
-	public static void writeToImage(int [][] arr, String filename) throws IOException, RuntimeException{
+	private static void writeToImage(int [][] arr, String filename) throws IOException, RuntimeException{
 
 		WritableRaster raster= Raster.createWritableRaster(sampleModel, new Point(0,0));
     	for(int i=0;i<arr.length;i++)
@@ -206,5 +185,15 @@ class BitImage{
 		if (!ImageIO.write(image, "BMP", new File(filename))) {
   			throw new RuntimeException("Unexpected error writing image");
 		}
+	}
+
+	public BufferedImage applySmoothing(String filename, int width, int height) throws IOException{
+		int [][] arr = smooth(getPixelArray(filename), 4, 4);
+		return new BufferedImage(arr.length,arr[0].length,BufferedImage.TYPE_BYTE_GRAY); 
+	}
+
+	public BufferedImage applyHistogramEqualization(String filename) throws IOException{
+		int [][] arr = histogramEqualize(getPixelArray(filename));
+		return new BufferedImage(arr.length,arr[0].length,BufferedImage.TYPE_BYTE_GRAY);
 	}
 }
