@@ -9,6 +9,8 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.imageio.ImageIO;
 import java.io.*;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 public class ImageProcessGUI extends JFrame{
 
@@ -24,8 +26,7 @@ public class ImageProcessGUI extends JFrame{
 		add(loadPanel, BorderLayout.LINE_START);
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(800, 800);
-		pack();
+		setSize(800, 600);
 		setVisible(true);
 	}
 
@@ -40,6 +41,7 @@ class LoadImagePanel extends JPanel{
 	protected JLabel imageLabel;
 	protected JButton loadImage;
 	protected String imagePath;
+	protected ImageUtils imageUtils = new ImageUtils();
 
 	public LoadImagePanel(String title){
 		super();
@@ -57,14 +59,15 @@ class LoadImagePanel extends JPanel{
 					File file = fc.getSelectedFile();
 					imagePath = file.getName();
 					try{
-						imageLabel.setIcon(new ImageIcon(ImageIO.read(file)));
+						BufferedImage img = ImageIO.read(file);
+						ArrayList<Integer> scaledDimens = imageUtils.getScaledDimensions(img, new Dimension(500, 500));
+						imageLabel.setIcon(new ImageIcon(imageUtils.resize(img, scaledDimens.get(0), scaledDimens.get(1))));
 					} catch (IOException evt){
 						evt.printStackTrace();
 					}
 				}
 			}
 		});
-
 
 		add(loadImage);
 		add(labelImage);
@@ -74,6 +77,7 @@ class LoadImagePanel extends JPanel{
 	public String getImageFileName(){
 		return imagePath;
 	}
+
 }
 
 
