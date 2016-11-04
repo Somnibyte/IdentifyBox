@@ -62,6 +62,9 @@ class LoadImagePanel extends JPanel{
 		loadImage.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
 				JFileChooser fc = new JFileChooser();
+				fc.setCurrentDirectory(new File("input/"));
+				FileNameExtensionFilter filter = new FileNameExtensionFilter("Bitmap Images", "bmp");
+    			fc.setFileFilter(filter);
 				int result = fc.showOpenDialog(null);
 				if (result == JFileChooser.APPROVE_OPTION){
 					File file = fc.getSelectedFile();
@@ -136,7 +139,7 @@ class ImageTransformPanel extends JPanel{
             			img = bitimage.applySmoothing((imagePath), 4, 4);
             		} catch (IOException e){
             			e.printStackTrace();
-            		}
+            		}imageLabel.setIcon(new ImageIcon
         		} 
 			}
 		});
@@ -157,7 +160,7 @@ class ImageTransformPanel extends JPanel{
 		applyButton = new JButton("Apply operation to image");
 		applyButton.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent at){
-				new OutputImageModal(img);
+				new OutputImageModal(img, bitimage);
 			}
 		});
 
@@ -187,7 +190,53 @@ class ImageTransformPanel extends JPanel{
 
 class OutputImageModal extends JDialog{
 
-	public OutputImageModal(BufferedImage img){
+	private JLabel outImgLabel;
+	private JButton saveButton, noSaveButton;
+	private ImageUtils imageUtils = new ImageUtils();
+
+	public OutputImageModal(BufferedImage img, BitImage bitimage){
+		outImgLabel = new JLable();
+		outImgLabel.setBorder(new TitledBorder(new EtchedBorder(), "Output Image"));
+
+		ArrayList<Integer> scaledDimens = imageUtils.getScaledDimensions(img, new Dimension(500, 500));
+		outImgLabel.setIcon(new ImageIcon(imageUtils.resize(img, scaledDimens.get(0), scaledDimens.get(1))));
+
+		saveButton = new JButton("Save");
+		ActionListener lst = new ActionListener(){
+			public void actionPerformed(ActionEvent avt){
+				JFileChooser fileChooser = new JFileChooser();
+				fileChooser.setDialogTitle("Specify a file to save");
+				fileChooser.setCurrentDirectory(new File("output/"));
+				FileNameExtensionFilter filter = new FileNameExtensionFilter("Bitmap Images", "bmp");
+    			fileChooser.setFileFilter(filter);
+				int userSelection = fileChooser.showSaveDialog(null);
+				if (userSelection == JFileChooser.APPROVE_OPTION) {
+ 				    File file = fileChooser.getSelectedFile();
+ 				    try{
+     					bitimage.save(file.getName());
+     				} catch (IOException | RuntimeException ex){
+     					ex.printStackTrace();
+     				}
+				}
+				dispose();
+			}
+		};
+		saveButton.addActionListener(lst);
+		getRootPane().setDefaultButton(saveButton);
+		getRootPane().registerKeyboardAction(lst,
+			KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+			JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+		noSaveButton = new JButton("Don't Save");
+		ActionListener ast = new ActionListener(){
+			public void actionPerformed(ActionEvent et){
+				dispose();
+			}
+		};
+		getRootPane().registerKeyboardAction(ast,
+			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+			JComponent.WHEN_IN_FOCUSED_WINDOW);
+
 
 	}
 
