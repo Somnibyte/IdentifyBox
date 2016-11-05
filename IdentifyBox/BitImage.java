@@ -39,7 +39,7 @@ class BitImage{
 
 		//***Smoothing process***
 		System.out.println("Now applying smoothing filter...");
-		writeToImage(applySmoothing(getPixelArray(filename), 6, 6), "smoothing_output_new.bmp");
+		writeToImage(applyLapEdge(applySmoothing(getPixelArray(filename), 6, 6)), "smoothing_with_LapEdge.bmp");
 
 	}
 
@@ -91,6 +91,72 @@ class BitImage{
 	}
 
 
+	public static int[][] applyLapEdge(int[][] arr)
+	{
+		int sum = 0;
+		int avg;
+		//"frame" refers to small segment being modified at a time
+		int frameX = 3;
+		int frameY = 3;
+		int currentStartRow = 0;
+		int currentMaxRow = 3;
+		int currentStartColumn = 0;
+		int currentMaxColumn = 3;
+		int kernelColumn = 0;
+		int kernelRow = 0;
+		int [][] outputArray = new int[arr.length][arr[0].length];
+		int threshold = 10;
+		int [][] weightedKernel = new int[][] {
+			{-1, -1, -1},
+			{-1, 8, -1},
+			{-1, -1, -1}
+		};
+
+		//operate on rows
+		while(currentMaxRow < arr.length)
+		{
+			//System.out.println("currentStartRow = " + currentStartRow);
+			//operate on columns
+			while(currentMaxColumn < arr[0].length)
+			{
+				//System.out.println("currentStartColumn = " + currentStartColumn);
+				//gather average of frame
+				for(int i=currentStartRow; i<currentMaxRow; i++)
+				{
+					for(int j=currentStartColumn; j<currentMaxColumn; j++)
+					{
+						kernelColumn = j%3;
+						kernelRow = i%3;
+						sum += weightedKernel[kernelRow][kernelColumn]*arr[i][j];
+					}
+				}
+
+				if(sum > 255){
+					sum = 255;
+				}else if(sum < 0){
+					sum = 0;
+				}
+
+				if(sum <= threshold){
+					outputArray[currentStartRow+1][currentStartColumn+1] = 255;
+					sum = 0;
+				}else{
+					outputArray[currentStartRow+1][currentStartColumn+1] = 0;
+					sum = 0;
+				}
+
+				currentStartColumn += 1;//frameX;
+				currentMaxColumn += 1; //frameX;
+			}
+			currentStartRow += 1;//frameY;
+			currentMaxRow += 1;//frameY;
+			currentMaxColumn = 3;//frameX;
+			currentStartColumn = 0;
+			//System.out.println("adding to row");
+		}
+		return outputArray;
+	}
+
 	// Histogram Equalization
 	public static int[][] applyHistogramEqualization(int [][] arr){
 
@@ -128,7 +194,7 @@ class BitImage{
 		return arr;
 	}
 
-	
+
 	/*
 	int [][] gaussianKernel = new int[][] {
 			{1, 4, 6, 4, 1},
@@ -204,9 +270,9 @@ class BitImage{
 					median = 0;
 				}
 				outputArray[currentStartRow+1][currentStartColumn+1] = median;
-				
+
 				currentStartColumn += 1;
-				currentMaxColumn += 1; 
+				currentMaxColumn += 1;
 			}
 			currentStartRow += 1;
 			currentMaxRow += 1;
