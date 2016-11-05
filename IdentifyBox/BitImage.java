@@ -17,6 +17,7 @@ import java.awt.image.WritableRaster;
 import java.awt.image.SampleModel;
 import java.io.*;
 import javax.imageio.*;
+import java.util.Arrays;
 
 class BitImage{
 
@@ -37,8 +38,8 @@ class BitImage{
 		writeToImage(applyContrast(getPixelArray(filename), 3, 127), "contrast.bmp");
 
 		//***Smoothing process***
-		//System.out.println("Now applying smoothing filter...");
-		//writeToImage(applySmoothing(getPixelArray(filename), 4, 4), "smoothing_output_size4.bmp");
+		System.out.println("Now applying smoothing filter...");
+		writeToImage(applySmoothing(getPixelArray(filename), 6, 6), "smoothing_output_new.bmp");
 
 	}
 
@@ -127,16 +128,44 @@ class BitImage{
 		return arr;
 	}
 
+	
+	/*
+	int [][] gaussianKernel = new int[][] {
+			{1, 4, 6, 4, 1},
+			{4, 16, 25, 16, 4},
+			{6, 28, 49, 28, 6},
+			{4, 16, 25, 16, 4},
+			{1, 4, 6, 4, 1}
+		};
+	*/
 	//Smoothing
-	public static int[][] applySmoothing(int[][] arr, int frameX, int frameY) //add dimensions of frame
+	//Smoothing
+	public static int[][] applySmoothing(int[][] arr, int frameX, int frameY)
 	{
 		int sum = 0;
-		int avg;
+		int median;
 		//"frame" refers to small segment being modified at a time
 		int currentStartRow = 0;
 		int currentMaxRow = frameY;
 		int currentStartColumn = 0;
 		int currentMaxColumn = frameX;
+		int kernelColumn = 0;
+		int kernelRow = 0;
+		int[] sortArray = new int[frameX*frameY];
+		int sortIndex=0;
+		int [][] outputArray = new int[arr.length][arr[0].length];
+		int[][] gaussianKernel = new int[][] {
+			{1, 4, 6 , 4, 1},
+			{3, 14, 23, 14, 3},
+			{6, 23, 49, 23, 6},
+			{3, 14, 23, 14, 3},
+			{1, 4, 6, 4, 1}
+		};
+		int [][] weightedKernel = new int[][] {
+			{3, 6, 3},
+			{6, 20, 6},
+			{3, 6, 3}
+		};
 
 		//operate on rows
 		while(currentMaxRow < arr.length)
@@ -151,33 +180,41 @@ class BitImage{
 				{
 					for(int j=currentStartColumn; j<currentMaxColumn; j++)
 					{
-						sum += arr[i][j];
+						kernelColumn = j%frameX;
+						kernelRow = i%frameY;
+						//sum += weightedKernel[kernelRow][kernelColumn]*arr[i][j];
+						sortArray[sortIndex] = arr[i][j];
+						sortIndex++;
 					}
 				}
-
-				avg = sum/(frameX*frameY);
+				sortIndex = 0;
+				Arrays.sort(sortArray);
+				sum = sortArray[(frameX*frameY)/2];
+				median = sum;
 				sum = 0;
 
-				//overwrite frame values with average
-				for(int k=currentStartRow; k<currentMaxRow; k++)
+				if(median > 255)
 				{
-					for(int y=currentStartColumn; y<currentMaxColumn; y++)
-					{
-						arr[k][y] = avg;
-						//System.out.println("Setting frame " + k + "," + y + " to average value " + avg + ".");
-					}
+					System.out.println("Correcting to 255.");
+					median = 255;
 				}
-				currentStartColumn += frameX;
-				currentMaxColumn += frameX;
-
+				else if(median < 0)
+				{
+					System.out.println("Correcting to 0.");
+					median = 0;
+				}
+				outputArray[currentStartRow+1][currentStartColumn+1] = median;
+				
+				currentStartColumn += 1;
+				currentMaxColumn += 1; 
 			}
-			currentStartRow += frameY;
-			currentMaxRow += frameY;
+			currentStartRow += 1;
+			currentMaxRow += 1;
 			currentMaxColumn = frameX;
 			currentStartColumn = 0;
 			//System.out.println("adding to row");
 		}
-		return arr;
+		return outputArray;
 	}
 
   // Printing pixels
