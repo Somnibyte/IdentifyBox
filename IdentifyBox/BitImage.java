@@ -20,7 +20,7 @@ import javax.imageio.*;
 
 public class BitImage{
 
-	private static SampleModel sampleModel;
+	private SampleModel sampleModel;
 
   // Getting pixels from an array
 	private  int [][] getPixelArray(String filename) throws IOException{
@@ -160,7 +160,7 @@ public class BitImage{
 
 
   // New Output Image
-	private void writeToImage(int [][] arr, String filename) throws IOException, RuntimeException{
+	private BufferedImage writeToImage(int [][] arr, String filename) throws IOException, RuntimeException{
 
 		WritableRaster raster= Raster.createWritableRaster(sampleModel, new Point(0,0));
     	for(int i=0;i<arr.length;i++)
@@ -174,30 +174,15 @@ public class BitImage{
     	BufferedImage image=new BufferedImage(arr.length,arr[0].length,BufferedImage.TYPE_BYTE_GRAY);
     	image.setData(raster);
 
-    	File file = new File(filename);
-
-    	if (file.createNewFile()){
-    		System.out.println("File creation successful");
-    	} else {
-    		System.out.println("File already exists.");
-    	}
-
-		if (!ImageIO.write(image, "BMP", new File(filename))) {
-  			throw new RuntimeException("Unexpected error writing image");
-		}
+    	return image;
 	}
 
 	public BufferedImage applySmoothing(String filename, int width, int height) throws IOException{
-		int [][] arr = smooth(getPixelArray(filename), 4, 4);
-		return new BufferedImage(arr.length,arr[0].length,BufferedImage.TYPE_BYTE_GRAY); 
+		return writeToImage(smooth(getPixelArray(filename), 4, 4), filename);
 	}
 
 	public BufferedImage applyHistogramEqualization(String filename) throws IOException{
-		int [][] arr = histogramEqualize(getPixelArray(filename));
-		return new BufferedImage(arr.length,arr[0].length,BufferedImage.TYPE_BYTE_GRAY);
+		return writeToImage(histogramEqualize(getPixelArray(filename)), filename);
 	}
 
-	public void save(Filename) throws IOException, RuntimeException{
-
-	}
 }
