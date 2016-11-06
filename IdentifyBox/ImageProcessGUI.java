@@ -6,6 +6,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.border.*;
 import javax.swing.JCheckBox;
 import javax.imageio.ImageIO;
@@ -99,11 +100,15 @@ class ImageTransformPanel extends JPanel{
 
 	private String imagePath = " ";
 	private JButton loadImage;
-	private JCheckBox smoothBox, sharpenBox, histogramBox, edgeDetectBox, finalBox;
-	// private HashMap<String, Boolean> actions = new HashMap<>(); for automatic mode only
+	private JRadioButton smoothBox, sharpenBox, histogramBox, edgeDetectBox, finalBox;
+	private ButtonGroup actions;	
 	private BitImage bitimage = new BitImage();
 	private BufferedImage img;
 	private JButton applyButton;
+
+	private int order;
+	private JLabel kernelLabel;
+	private JSpinner matrixOrder;
 	private JPanel extras;
 
 	public ImageTransformPanel(String titled, LoadImagePanel loadPanel){
@@ -111,12 +116,23 @@ class ImageTransformPanel extends JPanel{
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBorder(new TitledBorder(new EtchedBorder(), titled));
 
-		//JLabel instructions = new JLabel("You have to click \"Load Image to be Processed\" before you run any of the operations below.");
-
 		loadImage = new JButton("Load Image to be Processed");
+
+		smoothBox = new JRadioButton("Apply smoothing");
+		histogramBox = new JRadioButton("Apply histogram equalization");
+		applyButton = new JButton("Apply operation to image");
+		actions = new ButtonGroup ();
+
+		actions.add(smoothBox);
+		actions.add(histogramBox);
+
+		smoothBox.setEnabled(false);
+		histogramBox.setEnabled(false);
+
+
 		loadImage.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent et){
-				int option = JOptionPane.showConfirmDialog(null, "Do you want to use a new image(Yes to use a new image, No to use the loaded image)?",
+				int option = JOptionPane.showConfirmDialog(null, "Do you want to use a new image(Yes to use a new image, No to use the last image loaded)?",
 								"Select Image for Processing", JOptionPane.YES_NO_OPTION);
 				if (option == JOptionPane.YES_OPTION){
 					JFileChooser fc = new JFileChooser();
@@ -125,59 +141,77 @@ class ImageTransformPanel extends JPanel{
 					if (result == JFileChooser.APPROVE_OPTION){
 						File file = fc.getSelectedFile();
 						setImagePath(file.getAbsolutePath());
-						//img = null;
 					}
-				} else if (option == JOptionPane.NO_OPTION && !imagePath.isEmpty()){
+					// Loading the image from the LoadPanel
+				} else if (option == JOptionPane.NO_OPTION && " ".equals(imagePath)){ 
 					setImagePath(loadPanel.getPath());
+					System.out.println(imagePath);
 				}
+
+				smoothBox.setEnabled(true);
+				histogramBox.setEnabled(true);
+
 			}
 		});
 
-		smoothBox = new JCheckBox("Apply smoothing");
-		histogramBox = new JCheckBox("Apply histogram equalization");
-		applyButton = new JButton("Apply operation to image");
-
-		//setupActions();
-
-		smoothBox.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent st){
-				JCheckBox bc = (JCheckBox) st.getSource();
-        		if (bc.isSelected()) {
-        			try{
-        				// Will change the values of 4 to a more generic version.
-        				if (imagePath.isEmpty()) System.out.println("Ficked");
-            			img = bitimage.applySmoothing((imagePath), 4, 4);
-            		} catch (IOException e){
-            			e.printStackTrace();
-            		}
-        		} 
-			}
-		});
-
-		histogramBox.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent ht){
-				JCheckBox cb = (JCheckBox) ht.getSource();
-        		if (cb.isSelected()) {
-        			try{
-        				if (imagePath.isEmpty()) System.out.println("Ficked up");
-            			img = bitimage.applyHistogramEqualization((imagePath));
-        			}catch (IOException e){
-        				e.printStackTrace();
+		ActionListener act = new ActionListener(){
+			@Override
+   			public void actionPerformed(ActionEvent e) {
+            	 if(e.getSource() == smoothBox){
+            	 	try{
+        				img = bitimage.applySmoothing((imagePath), 4, 4);
+        			} catch(IOException ie){
+        				ie.printStackTrace();
         			}
-        		} 
-			}
-		});
+            	 }else if(e.getSource() == histogramBox){
+            	 	try{
+            	 		img = bitimage.applyHistogramEqualization((imagePath));
+        			} catch(IOException ie){
+        				ie.printStackTrace();
+   					}
+            	 }
+            }
+        };
+
+		smoothBox.addActionListener(act);
+		histogramBox.addActionListener(act);
 
 		
 		applyButton.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent at){
-				new OutputImageModal(img);
+			public void actionPerformed(ActionEvent at){	
+				new OutputImageModal(img, ImageTransformPanel.this);
 			}
 		});
 
 
 		extras = new JPanel();
+		extras.setLayout(new BoxLayout(extras, BoxLayout.PAGE_AXIS));
 		extras.setBorder(new TitledBorder(new EtchedBorder(), "Extra configs for option selected"));
+
+		kernelLabel = new JLabel("Enter n for an n by n kernel");
+		
+		
+		matrixOrder = new JSpinner (new SpinnerNumberModel(
+			3,			// initial value
+			3,			// minimum value
+			12,			// maximum value
+			1			// step
+		));
+		matrixOrder.addChangeListener(new ChangeListener(){
+			public void stateChanged(ChangeEvent e) {
+				JSpinner gf = (JSpinner)e.getSource();
+				order = (Integer)gf.getValue();
+			}	
+		});
+
+
+		JPanel inputToKernelPanel = new JPanel();
+		inputToKernelPanel.setLayout(new BoxLayout(inputToKernelPanel, BoxLayout.LINE_AXIS));
+		inputToKernelPanel.add(kernelLabel);
+		inputToKernelPanel.add(matrixOrder);
+
+		extras.add(inputToKernelPanel);
+		//extras.add();
 
 		add(loadImage);
 		add(smoothBox);
@@ -187,17 +221,47 @@ class ImageTransformPanel extends JPanel{
 
 	}
 
-	/* For automatic mode only
-	private void setupActions(){
-		actions.put("Apply smoothing", false);
-		actions.put("Apply histogram equalization", false);
-	}*/
-
 	public void setImagePath(String imagePath){
 		this.imagePath = imagePath;
 	}
 }
 
+
+/*
+class KernelModel extends AbstractTableMode{
+	private int [][] data;
+
+	public int getRowCount() {
+   		return data.length;
+  	}
+
+  	public int getColumnCount() {
+   		return 0;
+  	}
+
+	public int [][] getData(){
+		return data;
+	}
+
+	public void setMatrix(int order){
+		data = new int[order][order];
+	}
+
+	public Object getValueAt(int row, int col) {
+      return data[row][col];
+    }
+
+    public void setValueAt(Object value, int row, int col){
+      data[row][col] = value;
+      fireTableCellUpdated(row, col);
+    }
+
+
+    public boolean isCellEditable(int row, int column) {
+        return true;
+    }
+}
+*/
 
 class OutputImageModal extends JDialog{
 
@@ -206,7 +270,7 @@ class OutputImageModal extends JDialog{
 	private ImageUtils imageUtils = new ImageUtils();
 	private JPanel imagePanel, commandPanel;
 
-	public OutputImageModal(BufferedImage img){
+	public OutputImageModal(BufferedImage img, ImageTransformPanel transformPanel){
 
 		imagePanel = new JPanel(new BorderLayout());
 		commandPanel = new JPanel(new FlowLayout());
@@ -230,7 +294,7 @@ class OutputImageModal extends JDialog{
 				int userSelection = fileChooser.showSaveDialog(null);
 				if (userSelection == JFileChooser.APPROVE_OPTION) {
  				    File file = fileChooser.getSelectedFile();
- 				    //formatName = formatName + String
+ 				    transformPanel.setImagePath(file.getAbsolutePath());
  				    try{
      					ImageIO.write(img, "bmp", file);
      				} catch (IOException | RuntimeException ex){

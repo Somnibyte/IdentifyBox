@@ -17,6 +17,8 @@ import java.awt.image.WritableRaster;
 import java.awt.image.SampleModel;
 import java.io.*;
 import javax.imageio.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class BitImage{
 
@@ -160,7 +162,7 @@ public class BitImage{
 
 
   // New Output Image
-	private BufferedImage writeToImage(int [][] arr, String filename) throws IOException, RuntimeException{
+	private BufferedImage writeToImage(int [][] arr) throws IOException, RuntimeException{
 
 		WritableRaster raster= Raster.createWritableRaster(sampleModel, new Point(0,0));
     	for(int i=0;i<arr.length;i++)
@@ -178,11 +180,11 @@ public class BitImage{
 	}
 
 	public BufferedImage applySmoothing(String filename, int width, int height) throws IOException{
-		return writeToImage(smooth(getPixelArray(filename), 4, 4), filename);
+		return writeToImage(smooth(getPixelArray(filename), 4, 4));
 	}
 
 	public BufferedImage applyHistogramEqualization(String filename) throws IOException{
-		return writeToImage(histogramEqualize(getPixelArray(filename)), filename);
+		return writeToImage(histogramEqualize(getPixelArray(filename)));
 	}
 
 }
