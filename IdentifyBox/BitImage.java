@@ -23,29 +23,37 @@ class BitImage{
 
 	private static SampleModel sampleModel;
 
+	/*
 	public static void main(String [] args) throws IOException, RuntimeException{
 
-		String filename = "im1-c.bmp";
-		System.out.println("Reading an bitmap image" + filename);
-		System.out.println("Printing the file in [0-255] range " + filename);
+		// Files to play with
+		String input_file = "im1-c.bmp";
+		String output_file_constrast = "constrast.bmp";
+		String outfile_file_lapEdge = "smoothing_with_LapEdge.bmp";
+
+
+		System.out.println("Reading an bitmap image" + input_file);
+		System.out.println("Printing the file in [0-255] range " + input_file);
 		//printPixelArray(getPixelArray(filename));
 
 		//***Histogram process***
-		System.out.println("Modifying the file(for every value that is below 100 we add 15)");
-		System.out.println("Printing the modified file in [0-255] range");
-		//printPixelArray(applyHistogramEqualization(getPixelArray(filename)));
-		System.out.println("Writing to an file- output.bmp");
-		writeToImage(applyContrast(getPixelArray(filename), 3, 127), "contrast.bmp");
+		System.out.println("Now applying contrast filter...");
+		writeToFile(writeToImage(constrast(getPixelArray(input_file), 3, 127)), output_file_constrast);
 
 		//***Smoothing process***
 		System.out.println("Now applying smoothing filter...");
-		writeToImage(applyLapEdge(applySmoothing(getPixelArray(filename), 6, 6)), "smoothing_with_LapEdge.bmp");
+		writeToFile(writeToImage(lapicianEdge(smooth(getPixelArray(input_file), 6, 6))), outfile_file_lapEdge);
 
-	}
+	}*/
 
 
+
+	/**
+	 * Private methods for testing
+	 * 
+	 */
   // Getting pixels from an array
-	public static int [][] getPixelArray(String filename) throws IOException{
+	private static int [][] getPixelArray(String filename) throws IOException{
 
     	BufferedImage image = ImageIO.read(new File(filename));
     	Raster raster = image.getData();
@@ -64,7 +72,7 @@ class BitImage{
 
 
 	// Modify test
-	public static int[][] modifyPixelArray(int [][] arr){
+	private static int[][] modifyPixelArray(int [][] arr){
 		for (int i = 0; i < arr.length; i++){
 			for (int j = 0; j < arr[i].length; j++){
 				if (arr[i][j] < 100){
@@ -80,7 +88,7 @@ class BitImage{
 
 
 	// Contrast Adjustment
-	public static int[][] applyContrast(int[][] arr, int contrast, int brightness){
+	private static int[][] constrast(int[][] arr, int contrast, int brightness){
 		for (int i = 0; i < arr.length; i++){
 			for (int j = 0; j < arr[i].length; j++){
 				arr[i][j] = contrast*(arr[i][j] - brightness) + brightness;
@@ -91,7 +99,7 @@ class BitImage{
 	}
 
 
-	public static int[][] applyLapEdge(int[][] arr)
+	private static int[][] lapicianEdge(int[][] arr)
 	{
 		int sum = 0;
 		int avg;
@@ -158,7 +166,7 @@ class BitImage{
 	}
 
 	// Histogram Equalization
-	public static int[][] applyHistogramEqualization(int [][] arr){
+	private static int[][] histogramEqualize(int [][] arr){
 
 		int[] H = new int[256];
 
@@ -206,7 +214,7 @@ class BitImage{
 	*/
 	//Smoothing
 	//Smoothing
-	public static int[][] applySmoothing(int[][] arr, int frameX, int frameY)
+	private static int[][] smooth(int[][] arr, int frameX, int frameY)
 	{
 		int sum = 0;
 		int median;
@@ -299,7 +307,7 @@ class BitImage{
 
 
   // New Output Image
-	public static void writeToImage(int [][] arr, String filename) throws IOException, RuntimeException{
+	private static BufferedImage writeToImage(int [][] arr) throws IOException{
 
 		WritableRaster raster= Raster.createWritableRaster(sampleModel, new Point(0,0));
     	for(int i=0;i<arr.length;i++)
@@ -313,7 +321,17 @@ class BitImage{
     	BufferedImage image=new BufferedImage(arr.length,arr[0].length,BufferedImage.TYPE_BYTE_GRAY);
     	image.setData(raster);
 
-    	File file = new File(filename);
+    	return image;
+	}
+
+
+	/**
+	 *	End of private methods for testing
+	 */
+
+
+	public static void writeToFile(BufferedImage image, String file_to_save) throws IOException, RuntimeException{
+		File file = new File(file_to_save);
 
     	if (file.createNewFile()){
     		System.out.println("File creation successful");
@@ -321,8 +339,39 @@ class BitImage{
     		System.out.println("File already exists.");
     	}
 
-		if (!ImageIO.write(image, "BMP", new File(filename))) {
+		if (!ImageIO.write(image, "BMP", new File(file_to_save))) {
   			throw new RuntimeException("Unexpected error writing image");
 		}
+	
 	}
+
+
+	/**
+	 * Start of public methods for GUI
+	 * 
+	 */
+	// Public methods
+
+	public BufferedImage applySmoothing(String filename, int width, int height) throws IOException{
+		return writeToImage(smooth(getPixelArray(filename), width, height));
+	}
+
+	public BufferedImage applyHistogramEqualization(String filename) throws IOException{
+		return writeToImage(histogramEqualize(getPixelArray(filename)));
+	}
+
+	public BufferedImage applyLapicianEdgeDetection(String filename) throws IOException{
+		return writeToImage(lapicianEdge(getPixelArray(filename)));
+	}
+
+	public BufferedImage applyContrast(String filename, int constrast, int brightness) throws IOException{
+		return writeToImage(constrast(getPixelArray(filename), constrast, brightness));
+	}
+
+	/**
+	 *  End of public methods for GUI
+	 */
+
+
+
 }
