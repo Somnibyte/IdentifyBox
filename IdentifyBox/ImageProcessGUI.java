@@ -32,7 +32,7 @@ public class ImageProcessGUI extends JFrame{
 		add(transformPanel, BorderLayout.LINE_END);
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(800, 600);
+		setSize(950, 750);
 		setVisible(true);
 	}
 
@@ -100,16 +100,18 @@ class ImageTransformPanel extends JPanel{
 
 	private String imagePath = " ";
 	private JButton loadImage;
-	private JRadioButton smoothBox, sharpenBox, histogramBox, edgeDetectBox, finalBox;
+	private JRadioButton smoothBox, contrastBox, histogramBox, lapicianBox, finalBox;
 	private ButtonGroup actions;	
 	private BitImage bitimage = new BitImage();
 	private BufferedImage img;
 	private JButton applyButton;
 
-	private int order;
+	private int order = 3;
 	private JLabel kernelLabel;
 	private JSpinner matrixOrder;
 	private JPanel extras;
+
+	private KernelGrid kernelVals_GUI;
 
 	public ImageTransformPanel(String titled, LoadImagePanel loadPanel){
 		super();
@@ -120,14 +122,21 @@ class ImageTransformPanel extends JPanel{
 
 		smoothBox = new JRadioButton("Apply smoothing");
 		histogramBox = new JRadioButton("Apply histogram equalization");
+		lapicianBox = new JRadioButton("Apply lapician edge detection");
+		contrastBox = new JRadioButton("Apply constrast");
 		applyButton = new JButton("Apply operation to image");
+
 		actions = new ButtonGroup ();
 
 		actions.add(smoothBox);
 		actions.add(histogramBox);
+		actions.add(lapicianBox);
+		actions.add(contrastBox);
 
 		smoothBox.setEnabled(false);
 		histogramBox.setEnabled(false);
+		lapicianBox.setEnabled(false);
+		contrastBox.setEnabled(false);
 
 
 		loadImage.addActionListener(new ActionListener(){
@@ -150,10 +159,12 @@ class ImageTransformPanel extends JPanel{
 
 				smoothBox.setEnabled(true);
 				histogramBox.setEnabled(true);
-
+				lapicianBox.setEnabled(true);
+				contrastBox.setEnabled(true);
 			}
 		});
 
+		// Will remove hardcoded values
 		ActionListener act = new ActionListener(){
 			@Override
    			public void actionPerformed(ActionEvent e) {
@@ -165,7 +176,19 @@ class ImageTransformPanel extends JPanel{
         			}
             	 }else if(e.getSource() == histogramBox){
             	 	try{
-            	 		img = bitimage.applyHistogramEqualization((imagePath));
+            	 		img = bitimage.applyHistogramEqualization(imagePath);
+        			} catch(IOException ie){
+        				ie.printStackTrace();
+   					}
+            	 } else if(e.getSource() == contrastBox){
+            	 	try{
+            	 		img = bitimage.applyContrast((imagePath), 4, 4);
+        			} catch(IOException ie){
+        				ie.printStackTrace();
+   					}
+            	 } else if(e.getSource() == lapicianBox){
+            	 	try{
+            	 		img = bitimage.applyLapicianEdgeDetection(imagePath);
         			} catch(IOException ie){
         				ie.printStackTrace();
    					}
@@ -197,10 +220,14 @@ class ImageTransformPanel extends JPanel{
 			12,			// maximum value
 			1			// step
 		));
+
+		kernelVals_GUI = new KernelGrid(order);
+
 		matrixOrder.addChangeListener(new ChangeListener(){
 			public void stateChanged(ChangeEvent e) {
 				JSpinner gf = (JSpinner)e.getSource();
 				order = (Integer)gf.getValue();
+				updateKernel(order);
 			}	
 		});
 
@@ -211,11 +238,13 @@ class ImageTransformPanel extends JPanel{
 		inputToKernelPanel.add(matrixOrder);
 
 		extras.add(inputToKernelPanel);
-		//extras.add();
+		extras.add(kernelVals_GUI);
 
 		add(loadImage);
 		add(smoothBox);
 		add(histogramBox);
+		add(lapicianBox);
+		add(contrastBox);
 		add(extras);
 		add(applyButton);
 
@@ -224,44 +253,91 @@ class ImageTransformPanel extends JPanel{
 	public void setImagePath(String imagePath){
 		this.imagePath = imagePath;
 	}
+
+	public void updateKernel(int order){
+		extras.remove(kernelVals_GUI);
+		extras.revalidate();
+		extras.repaint();
+		kernelVals_GUI = new KernelGrid(order);
+		extras.add(kernelVals_GUI);
+		extras.revalidate();
+		extras.repaint();
+	}
+
+	public JPanel getKernel(){
+		return kernelVals_GUI;
+	}
 }
 
 
-/*
-class KernelModel extends AbstractTableMode{
+class KernelGrid extends JPanel{
+
+	private final ArrayList<JButton> list = new ArrayList<JButton>();
 	private int [][] data;
+	private int order;
 
-	public int getRowCount() {
-   		return data.length;
-  	}
+    private JButton getGridButton(final int row, final int column) {
+        int index = row * order + column;
+        return list.get(index);
+    }
 
-  	public int getColumnCount() {
-   		return 0;
-  	}
+	private JButton createGridButton(final int row, final int col, int value) {
+        JButton b = new JButton(String.valueOf(value));
+        b.addActionListener(new ActionListener() {
 
-	public int [][] getData(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	JButton gb = KernelGrid.this.getGridButton(row, col);
+                String val = JOptionPane.showInputDialog(null, "Enter your value for this cell");
+                if (val != null){
+                	gb.setText(val);
+                	data[row][col] = Integer.parseInt(val);
+                }
+                printKernelCells();
+            }
+        });
+        return b;
+    }
+
+    private void resetData(int [][] data){
+    	for (int i =0; i < data.length; i++){
+    		for (int j = 0; j < data[0].length; j++){
+    			data[i][j] = 0;
+    		}
+    	}
+    }
+
+    public KernelGrid(int order){
+    	this.order = order;
+    	data = new int[order][order];
+    	resetData(data);
+    	setLayout(new GridLayout(order, order));
+        for (int i = 0; i < order * order; i++) {
+            int row = i / order;
+            int col = i % order;
+            JButton gb = createGridButton(row, col, 0);
+            list.add(gb);
+            add(gb);
+        }
+	}
+
+	public int [][] getValueData(){
 		return data;
 	}
 
-	public void setMatrix(int order){
-		data = new int[order][order];
+	public void printKernelCells(){
+		StringBuilder sb = new StringBuilder();
+		for (int i =0; i < data.length; i++){
+    		for (int j = 0; j < data[0].length; j++){
+    			sb.append(data[i][j] + " ");
+    		}
+    		sb.append("\n");
+    	}
+    	System.out.println(sb.toString());
 	}
 
-	public Object getValueAt(int row, int col) {
-      return data[row][col];
-    }
-
-    public void setValueAt(Object value, int row, int col){
-      data[row][col] = value;
-      fireTableCellUpdated(row, col);
-    }
-
-
-    public boolean isCellEditable(int row, int column) {
-        return true;
-    }
 }
-*/
+
 
 class OutputImageModal extends JDialog{
 
