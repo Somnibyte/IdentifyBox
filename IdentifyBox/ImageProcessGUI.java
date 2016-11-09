@@ -100,7 +100,7 @@ class ImageTransformPanel extends JPanel{
 
 	private String imagePath = " ";
 	private JButton loadImage;
-	private JRadioButton smoothBox, contrastBox, histogramBox, lapicianBox, finalBox;
+	private JRadioButton smoothBox, contrastBox, histogramBox, kirschBox, finalBox;
 	private ButtonGroup actions;	
 	private BitImage bitimage = new BitImage();
 	private BufferedImage img;
@@ -122,7 +122,7 @@ class ImageTransformPanel extends JPanel{
 
 		smoothBox = new JRadioButton("Apply smoothing");
 		histogramBox = new JRadioButton("Apply histogram equalization");
-		lapicianBox = new JRadioButton("Apply lapician edge detection");
+		kirschBox = new JRadioButton("Apply kirsch edge detection");
 		contrastBox = new JRadioButton("Apply constrast");
 		applyButton = new JButton("Apply operation to image");
 
@@ -130,12 +130,12 @@ class ImageTransformPanel extends JPanel{
 
 		actions.add(smoothBox);
 		actions.add(histogramBox);
-		actions.add(lapicianBox);
+		actions.add(kirschBox);
 		actions.add(contrastBox);
 
 		smoothBox.setEnabled(false);
 		histogramBox.setEnabled(false);
-		lapicianBox.setEnabled(false);
+		kirschBox.setEnabled(false);
 		contrastBox.setEnabled(false);
 
 
@@ -159,7 +159,7 @@ class ImageTransformPanel extends JPanel{
 
 				smoothBox.setEnabled(true);
 				histogramBox.setEnabled(true);
-				lapicianBox.setEnabled(true);
+				kirschBox.setEnabled(true);
 				contrastBox.setEnabled(true);
 			}
 		});
@@ -186,9 +186,9 @@ class ImageTransformPanel extends JPanel{
         			} catch(IOException ie){
         				ie.printStackTrace();
    					}
-            	 } else if(e.getSource() == lapicianBox){
+            	 } else if(e.getSource() == kirschBox){
             	 	try{
-            	 		img = bitimage.applyLapicianEdgeDetection(imagePath);
+            	 		img = bitimage.applyKirschEdgeDetection(imagePath);
         			} catch(IOException ie){
         				ie.printStackTrace();
    					}
@@ -243,7 +243,7 @@ class ImageTransformPanel extends JPanel{
 		add(loadImage);
 		add(smoothBox);
 		add(histogramBox);
-		add(lapicianBox);
+		add(kirschBox);
 		add(contrastBox);
 		add(extras);
 		add(applyButton);
