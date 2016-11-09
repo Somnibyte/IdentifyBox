@@ -1,5 +1,17 @@
 /*
 *	File: ImageProcessGUI.java
+*
+*	Naming conventions:
+*	Buttons - (name)Btn
+*	Panels - (name)Panel
+*	Radio Button - (name)RdioBtn
+*	Labels - (name)Label
+* 	ButtonGroup - (name)BtnGrp
+*   Dialog - (name)diag
+*   ActionListener - (name)listner
+*
+*
+*	Components are added in the order they appear.
 * 
  */
 
@@ -15,20 +27,23 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+
+/**
+ * 	This is the main GUI class
+ */
 public class ImageProcessGUI extends JFrame{
 
-	private LoadImagePanel loadPanel;
+	private LoadInitialImagePanel loadPanel;
 	private ImageTransformPanel transformPanel;
-	public String originalLoadedImageName = "";
 
 	public ImageProcessGUI(){
 		super("Image Processing Application");
 		getContentPane().setLayout(new BorderLayout());
 
-		loadPanel = new LoadImagePanel("Original Image");
+		loadPanel = new LoadInitialImagePanel("Original Image");
 		transformPanel = new ImageTransformPanel("Steps to generate output images", loadPanel);
 		
-		add(loadPanel, BorderLayout.CENTER);
+		add(loadPanel, BorderLayout.CENTER);			
 		add(transformPanel, BorderLayout.LINE_END);
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -46,23 +61,27 @@ public class ImageProcessGUI extends JFrame{
 	} 
 }
 
-class LoadImagePanel extends JPanel{
 
-	private JLabel labelImage;
-	private JLabel imageLabel;
-	private JButton loadImage;
+/**
+ *  This acts the display for the initial image to be processed 
+ */
+class LoadInitialImagePanel extends JPanel{
+
+	private JLabel imgTitleLabel, emptyLabel;
+	private JButton loadImageBtn;
+
 	private ImageUtils imageUtils = new ImageUtils();
 	private String path = " ";
 
-	public LoadImagePanel(String title){
+	public LoadInitialImagePanel(String title){
 		super();
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBorder(new TitledBorder(new EtchedBorder(), title));
 
-		labelImage = new JLabel("Image:");
-		imageLabel = new JLabel();
-		loadImage = new JButton("Load Image to be Compared Against");
-		loadImage.addActionListener(new ActionListener(){
+		imgTitleLabel = new JLabel("Image:");
+		emptyLabel = new JLabel();
+		loadImageBtn = new JButton("Load Image to be Compared Against");
+		loadImageBtn.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
 				JFileChooser fc = new JFileChooser();
 				fc.setCurrentDirectory(new File(new File("").getAbsolutePath(), "input"));
@@ -75,7 +94,7 @@ class LoadImagePanel extends JPanel{
 					try{
 						BufferedImage img = ImageIO.read(file);
 						ArrayList<Integer> scaledDimens = imageUtils.getScaledDimensions(img, new Dimension(500, 500));
-						imageLabel.setIcon(new ImageIcon(imageUtils.resize(img, scaledDimens.get(0), scaledDimens.get(1))));
+						emptyLabel.setIcon(new ImageIcon(imageUtils.resize(img, scaledDimens.get(0), scaledDimens.get(1))));
 					} catch (IOException evt){
 						evt.printStackTrace();
 					}
@@ -83,9 +102,10 @@ class LoadImagePanel extends JPanel{
 			}
 		});
 
-		add(loadImage);
-		add(labelImage);
-		add(imageLabel);
+		add(loadImageBtn);
+		add(imgTitleLabel);
+		add(emptyLabel);
+		
 	}
 
 	
@@ -98,48 +118,51 @@ class LoadImagePanel extends JPanel{
 
 class ImageTransformPanel extends JPanel{
 
-	private String imagePath = " ";
-	private JButton loadImage;
-	private JRadioButton smoothBox, contrastBox, histogramBox, lapicianBox, finalBox;
-	private ButtonGroup actions;	
-	private BitImage bitimage = new BitImage();
-	private BufferedImage img;
-	private JButton applyButton;
-
-	private int order = 3;
+	private JButton loadImageBtn, applyOperationBtn;
+	private JRadioButton smoothRdioBtn, contrastRdioBtn, histogramRdioBtn, lapicianRdioBtn;
+	private ButtonGroup imgProcessOperations;
 	private JLabel kernelLabel;
-	private JSpinner matrixOrder;
-	private JPanel extras;
+	private JSpinner matOrderJSpinner;		// Input for order
+	private JPanel extrasPanel;
 
+	private String imagePath = " ";
+	private BufferedImage img;
+	private int order = 3;				// Since kernel is a order by order matrix
+	
+	private BitImage bitImage = new BitImage();
 	private KernelGrid kernelVals_GUI;
 
-	public ImageTransformPanel(String titled, LoadImagePanel loadPanel){
+	public ImageTransformPanel(String titled, LoadInitialImagePanel loadPanel){
 		super();
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBorder(new TitledBorder(new EtchedBorder(), titled));
 
-		loadImage = new JButton("Load Image to be Processed");
 
-		smoothBox = new JRadioButton("Apply smoothing");
-		histogramBox = new JRadioButton("Apply histogram equalization");
-		lapicianBox = new JRadioButton("Apply lapician edge detection");
-		contrastBox = new JRadioButton("Apply constrast");
-		applyButton = new JButton("Apply operation to image");
+		loadImageBtn = new JButton("Load Image to be Processed");
+		smoothRdioBtn = new JRadioButton("Apply smoothing");
+		histogramRdioBtn = new JRadioButton("Apply histogram equalization");
+		lapicianRdioBtn = new JRadioButton("Apply lapician edge detection");
+		contrastRdioBtn = new JRadioButton("Apply constrast");
+		applyOperationBtn = new JButton("Apply operation to image");
 
-		actions = new ButtonGroup ();
-
-		actions.add(smoothBox);
-		actions.add(histogramBox);
-		actions.add(lapicianBox);
-		actions.add(contrastBox);
-
-		smoothBox.setEnabled(false);
-		histogramBox.setEnabled(false);
-		lapicianBox.setEnabled(false);
-		contrastBox.setEnabled(false);
+		extrasPanel = new JPanel();			// holds all kernel related stuff
+		JPanel inputToKernelPanel = new JPanel();
+		kernelLabel = new JLabel("Enter n for an n by n kernel");
 
 
-		loadImage.addActionListener(new ActionListener(){
+		imgProcessOperations = new ButtonGroup ();
+		imgProcessOperations.add(smoothRdioBtn);
+		imgProcessOperations.add(histogramRdioBtn);
+		imgProcessOperations.add(lapicianRdioBtn);
+		imgProcessOperations.add(contrastRdioBtn);
+
+		smoothRdioBtn.setEnabled(false);
+		histogramRdioBtn.setEnabled(false);
+		lapicianRdioBtn.setEnabled(false);
+		contrastRdioBtn.setEnabled(false);
+
+
+		loadImageBtn.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent et){
 				int option = JOptionPane.showConfirmDialog(null, "Do you want to use a new image(Yes to use a new image, No to use the last image loaded)?",
 								"Select Image for Processing", JOptionPane.YES_NO_OPTION);
@@ -157,38 +180,50 @@ class ImageTransformPanel extends JPanel{
 					System.out.println(imagePath);
 				}
 
-				smoothBox.setEnabled(true);
-				histogramBox.setEnabled(true);
-				lapicianBox.setEnabled(true);
-				contrastBox.setEnabled(true);
+				smoothRdioBtn.setEnabled(true);
+				histogramRdioBtn.setEnabled(true);
+				lapicianRdioBtn.setEnabled(true);
+				contrastRdioBtn.setEnabled(true);
 			}
 		});
 
 		// Will remove hardcoded values
-		ActionListener act = new ActionListener(){
+		ActionListener actListner = new ActionListener(){
 			@Override
    			public void actionPerformed(ActionEvent e) {
-            	 if(e.getSource() == smoothBox){
+            	 if(e.getSource() == smoothRdioBtn){
             	 	try{
-        				img = bitimage.applySmoothing((imagePath), 4, 4);
+            	 		String options = JOptionPane.showInputDialog(null, "Enter your frameX and frameY values respectively.Example :4,5");
+            	 		if (options != null){
+	            	 		String[] values = options.split(",");
+	            	 		int frameX = Integer.parseInt(values[0]);
+	            	 		int frameY = Integer.parseInt(values[1]);
+	        				img = bitImage.applySmoothing((imagePath), frameX, frameY);
+	        			}
         			} catch(IOException ie){
         				ie.printStackTrace();
         			}
-            	 }else if(e.getSource() == histogramBox){
+            	 }else if(e.getSource() == histogramRdioBtn){
             	 	try{
-            	 		img = bitimage.applyHistogramEqualization(imagePath);
+            	 		img = bitImage.applyHistogramEqualization(imagePath);
         			} catch(IOException ie){
         				ie.printStackTrace();
    					}
-            	 } else if(e.getSource() == contrastBox){
+            	 } else if(e.getSource() == contrastRdioBtn){
             	 	try{
-            	 		img = bitimage.applyContrast((imagePath), 4, 4);
+            	 		String options = JOptionPane.showInputDialog(null, "Enter your contrast and brightness values respectively.Example :4,5");
+            	 		if (options != null){
+	            	 		String[] values = options.split(",");
+	            	 		int contrast = Integer.parseInt(values[0]);
+	            	 		int brightness = Integer.parseInt(values[1]);
+            	 			img = bitImage.applyContrast((imagePath), contrast, brightness);
+            	 		}
         			} catch(IOException ie){
         				ie.printStackTrace();
    					}
-            	 } else if(e.getSource() == lapicianBox){
+            	 } else if(e.getSource() == lapicianRdioBtn){
             	 	try{
-            	 		img = bitimage.applyLapicianEdgeDetection(imagePath);
+            	 		img = bitImage.applyLapicianEdgeDetection(imagePath);
         			} catch(IOException ie){
         				ie.printStackTrace();
    					}
@@ -196,25 +231,17 @@ class ImageTransformPanel extends JPanel{
             }
         };
 
-		smoothBox.addActionListener(act);
-		histogramBox.addActionListener(act);
+		smoothRdioBtn.addActionListener(actListner);
+		histogramRdioBtn.addActionListener(actListner);
+		lapicianRdioBtn.addActionListener(actListner);
+		contrastRdioBtn.addActionListener(actListner);
 
 		
-		applyButton.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent at){	
-				new OutputImageModal(img, ImageTransformPanel.this);
-			}
-		});
+		extrasPanel.setLayout(new BoxLayout(extrasPanel, BoxLayout.PAGE_AXIS));
+		extrasPanel.setBorder(new TitledBorder(new EtchedBorder(), "Extra configs for option selected"));
 
-
-		extras = new JPanel();
-		extras.setLayout(new BoxLayout(extras, BoxLayout.PAGE_AXIS));
-		extras.setBorder(new TitledBorder(new EtchedBorder(), "Extra configs for option selected"));
-
-		kernelLabel = new JLabel("Enter n for an n by n kernel");
 		
-		
-		matrixOrder = new JSpinner (new SpinnerNumberModel(
+		matOrderJSpinner = new JSpinner (new SpinnerNumberModel(
 			3,			// initial value
 			3,			// minimum value
 			12,			// maximum value
@@ -223,7 +250,7 @@ class ImageTransformPanel extends JPanel{
 
 		kernelVals_GUI = new KernelGrid(order);
 
-		matrixOrder.addChangeListener(new ChangeListener(){
+		matOrderJSpinner.addChangeListener(new ChangeListener(){
 			public void stateChanged(ChangeEvent e) {
 				JSpinner gf = (JSpinner)e.getSource();
 				order = (Integer)gf.getValue();
@@ -231,22 +258,27 @@ class ImageTransformPanel extends JPanel{
 			}	
 		});
 
+		applyOperationBtn.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent at){	
+				new OutputImageModal(img, ImageTransformPanel.this);
+			}
+		});
 
-		JPanel inputToKernelPanel = new JPanel();
+		
 		inputToKernelPanel.setLayout(new BoxLayout(inputToKernelPanel, BoxLayout.LINE_AXIS));
 		inputToKernelPanel.add(kernelLabel);
-		inputToKernelPanel.add(matrixOrder);
+		inputToKernelPanel.add(matOrderJSpinner);
 
-		extras.add(inputToKernelPanel);
-		extras.add(kernelVals_GUI);
+		extrasPanel.add(inputToKernelPanel);
+		extrasPanel.add(kernelVals_GUI);
 
-		add(loadImage);
-		add(smoothBox);
-		add(histogramBox);
-		add(lapicianBox);
-		add(contrastBox);
-		add(extras);
-		add(applyButton);
+		add(loadImageBtn);
+		add(smoothRdioBtn);
+		add(histogramRdioBtn);
+		add(lapicianRdioBtn);
+		add(contrastRdioBtn);
+		add(extrasPanel);
+		add(applyOperationBtn);
 
 	}
 
@@ -255,13 +287,13 @@ class ImageTransformPanel extends JPanel{
 	}
 
 	public void updateKernel(int order){
-		extras.remove(kernelVals_GUI);
-		extras.revalidate();
-		extras.repaint();
+		extrasPanel.remove(kernelVals_GUI);
+		extrasPanel.revalidate();
+		extrasPanel.repaint();
 		kernelVals_GUI = new KernelGrid(order);
-		extras.add(kernelVals_GUI);
-		extras.revalidate();
-		extras.repaint();
+		extrasPanel.add(kernelVals_GUI);
+		extrasPanel.revalidate();
+		extrasPanel.repaint();
 	}
 
 	public JPanel getKernel(){
@@ -342,7 +374,7 @@ class KernelGrid extends JPanel{
 class OutputImageModal extends JDialog{
 
 	private JLabel outImgLabel;
-	private JButton saveButton, noSaveButton;
+	private JButton saveBtn, noSaveBtn;
 	private ImageUtils imageUtils = new ImageUtils();
 	private JPanel imagePanel, commandPanel;
 
@@ -350,6 +382,8 @@ class OutputImageModal extends JDialog{
 
 		imagePanel = new JPanel(new BorderLayout());
 		commandPanel = new JPanel(new FlowLayout());
+		saveBtn = new JButton("Save");
+		noSaveBtn = new JButton("Don't Save");
 
 		outImgLabel = new JLabel();
 		outImgLabel.setBorder(new TitledBorder(new EtchedBorder(), "Output Image"));
@@ -357,10 +391,8 @@ class OutputImageModal extends JDialog{
 		ArrayList<Integer> scaledDimens = imageUtils.getScaledDimensions(img, new Dimension(500, 500));
 		outImgLabel.setIcon(new ImageIcon(imageUtils.resize(img, scaledDimens.get(0), scaledDimens.get(1))));
 
-		saveButton = new JButton("Save");
-		noSaveButton = new JButton("Don't Save");
-
-		ActionListener lst = new ActionListener(){
+		
+		ActionListener saveListner = new ActionListener(){
 			public void actionPerformed(ActionEvent avt){
 				JFileChooser fileChooser = new JFileChooser();
 				fileChooser.setDialogTitle("Specify a file to save");
@@ -380,27 +412,28 @@ class OutputImageModal extends JDialog{
 				dispose();
 			}
 		};
-		saveButton.addActionListener(lst);
-		getRootPane().setDefaultButton(saveButton);
-		getRootPane().registerKeyboardAction(lst,
+
+		saveBtn.addActionListener(saveListner);
+		getRootPane().setDefaultButton(saveBtn);
+		getRootPane().registerKeyboardAction(saveListner,
 			KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
 			JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 		
-		ActionListener ast = new ActionListener(){
+		ActionListener exitListner = new ActionListener(){
 			public void actionPerformed(ActionEvent et){
 				dispose();
 			}
 		};
-		noSaveButton.addActionListener(ast);
-		getRootPane().registerKeyboardAction(ast,
+		noSaveBtn.addActionListener(exitListner );
+		getRootPane().registerKeyboardAction(exitListner ,
 			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 			JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 		imagePanel.add(outImgLabel, BorderLayout.PAGE_START);
 
-		commandPanel.add(saveButton);
-		commandPanel.add(noSaveButton);
+		commandPanel.add(saveBtn);
+		commandPanel.add(noSaveBtn);
 		imagePanel.add(commandPanel, BorderLayout.PAGE_END);
 
 		add(imagePanel);
