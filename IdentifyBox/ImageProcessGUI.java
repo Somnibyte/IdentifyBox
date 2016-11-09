@@ -118,9 +118,21 @@ class LoadInitialImagePanel extends JPanel{
 
 class ImageTransformPanel extends JPanel{
 
+<<<<<<< HEAD
 	private JButton loadImageBtn, applyOperationBtn;
 	private JRadioButton smoothRdioBtn, contrastRdioBtn, histogramRdioBtn, lapicianRdioBtn;
 	private ButtonGroup imgProcessOperations;
+=======
+	private String imagePath = " ";
+	private JButton loadImage;
+	private JRadioButton smoothBox, contrastBox, histogramBox, kirschBox, finalBox;
+	private ButtonGroup actions;	
+	private BitImage bitimage = new BitImage();
+	private BufferedImage img;
+	private JButton applyButton;
+
+	private int order = 3;
+>>>>>>> fbe077fba07c5d84f6216a7e03c7a01f7faa0c58
 	private JLabel kernelLabel;
 	private JSpinner matOrderJSpinner;		// Input for order
 	private JPanel extrasPanel;
@@ -138,23 +150,43 @@ class ImageTransformPanel extends JPanel{
 		setBorder(new TitledBorder(new EtchedBorder(), titled));
 
 
+<<<<<<< HEAD
 		loadImageBtn = new JButton("Load Image to be Processed");
 		smoothRdioBtn = new JRadioButton("Apply smoothing");
 		histogramRdioBtn = new JRadioButton("Apply histogram equalization");
 		lapicianRdioBtn = new JRadioButton("Apply lapician edge detection");
 		contrastRdioBtn = new JRadioButton("Apply constrast");
 		applyOperationBtn = new JButton("Apply operation to image");
+=======
+		smoothBox = new JRadioButton("Apply smoothing");
+		histogramBox = new JRadioButton("Apply histogram equalization");
+		kirschBox = new JRadioButton("Apply kirsch edge detection");
+		contrastBox = new JRadioButton("Apply constrast");
+		applyButton = new JButton("Apply operation to image");
+>>>>>>> fbe077fba07c5d84f6216a7e03c7a01f7faa0c58
 
 		extrasPanel = new JPanel();			// holds all kernel related stuff
 		JPanel inputToKernelPanel = new JPanel();
 		kernelLabel = new JLabel("Enter n for an n by n kernel");
 
+<<<<<<< HEAD
 
 		imgProcessOperations = new ButtonGroup ();
 		imgProcessOperations.add(smoothRdioBtn);
 		imgProcessOperations.add(histogramRdioBtn);
 		imgProcessOperations.add(lapicianRdioBtn);
 		imgProcessOperations.add(contrastRdioBtn);
+=======
+		actions.add(smoothBox);
+		actions.add(histogramBox);
+		actions.add(kirschBox);
+		actions.add(contrastBox);
+
+		smoothBox.setEnabled(false);
+		histogramBox.setEnabled(false);
+		kirschBox.setEnabled(false);
+		contrastBox.setEnabled(false);
+>>>>>>> fbe077fba07c5d84f6216a7e03c7a01f7faa0c58
 
 		smoothRdioBtn.setEnabled(false);
 		histogramRdioBtn.setEnabled(false);
@@ -180,10 +212,17 @@ class ImageTransformPanel extends JPanel{
 					System.out.println(imagePath);
 				}
 
+<<<<<<< HEAD
 				smoothRdioBtn.setEnabled(true);
 				histogramRdioBtn.setEnabled(true);
 				lapicianRdioBtn.setEnabled(true);
 				contrastRdioBtn.setEnabled(true);
+=======
+				smoothBox.setEnabled(true);
+				histogramBox.setEnabled(true);
+				kirschBox.setEnabled(true);
+				contrastBox.setEnabled(true);
+>>>>>>> fbe077fba07c5d84f6216a7e03c7a01f7faa0c58
 			}
 		});
 
@@ -221,9 +260,15 @@ class ImageTransformPanel extends JPanel{
         			} catch(IOException ie){
         				ie.printStackTrace();
    					}
+<<<<<<< HEAD
             	 } else if(e.getSource() == lapicianRdioBtn){
             	 	try{
             	 		img = bitImage.applyLapicianEdgeDetection(imagePath);
+=======
+            	 } else if(e.getSource() == kirschBox){
+            	 	try{
+            	 		img = bitimage.applyKirschEdgeDetection(imagePath);
+>>>>>>> fbe077fba07c5d84f6216a7e03c7a01f7faa0c58
         			} catch(IOException ie){
         				ie.printStackTrace();
    					}
@@ -272,6 +317,7 @@ class ImageTransformPanel extends JPanel{
 		extrasPanel.add(inputToKernelPanel);
 		extrasPanel.add(kernelVals_GUI);
 
+<<<<<<< HEAD
 		add(loadImageBtn);
 		add(smoothRdioBtn);
 		add(histogramRdioBtn);
@@ -279,6 +325,15 @@ class ImageTransformPanel extends JPanel{
 		add(contrastRdioBtn);
 		add(extrasPanel);
 		add(applyOperationBtn);
+=======
+		add(loadImage);
+		add(smoothBox);
+		add(histogramBox);
+		add(kirschBox);
+		add(contrastBox);
+		add(extras);
+		add(applyButton);
+>>>>>>> fbe077fba07c5d84f6216a7e03c7a01f7faa0c58
 
 	}
 
