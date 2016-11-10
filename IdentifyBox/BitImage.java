@@ -507,6 +507,7 @@ class BitImage{
 	}
 
 	public BufferedImage applyLapicianEdgeDetection(String filename) throws IOException{
+		System.out.println("Applied Lap Edge.");
 		return writeToImage(applyLapEdge(getPixelArray(filename)));
 	}
 
