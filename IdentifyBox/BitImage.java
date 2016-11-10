@@ -23,34 +23,34 @@ class BitImage{
 
 	private static SampleModel sampleModel;
 
-	/*
-	public static void main(String [] args) throws IOException, RuntimeException{
+
+	public static void main(String[] args) throws IOException, RuntimeException{
 
 		// Files to play with
-		String input_file = "im1-c.bmp";
+		String input_file = "./input/im1-c.bmp";
 		String output_file_constrast = "constrast.bmp";
-		String outfile_file_lapEdge = "smoothing_with_LapEdge.bmp";
+		String outfile_file_kirschEdge = "smoothing_with_kirschEdge.bmp";
 
-
+/*
 		System.out.println("Reading an bitmap image" + input_file);
 		System.out.println("Printing the file in [0-255] range " + input_file);
 		//printPixelArray(getPixelArray(filename));
-
 		//***Histogram process***
 		System.out.println("Now applying contrast filter...");
 		writeToFile(writeToImage(constrast(getPixelArray(input_file), 3, 127)), output_file_constrast);
-
+		*/
 		//***Smoothing process***
-		System.out.println("Now applying smoothing filter...");
-		writeToFile(writeToImage(lapicianEdge(smooth(getPixelArray(input_file), 6, 6))), outfile_file_lapEdge);
+		System.out.println("Now applying kirsch filter...");
+		writeToFile(writeToImage(kirschEdge(smooth(getPixelArray(input_file), 6, 6))), outfile_file_kirschEdge);
 
-	}*/
+
+	}
 
 
 
 	/**
 	 * Private methods for testing
-	 * 
+	 *
 	 */
   // Getting pixels from an array
 	private static int [][] getPixelArray(String filename) throws IOException{
@@ -99,8 +99,7 @@ class BitImage{
 	}
 
 
-	private static int[][] lapicianEdge(int[][] arr)
-	{
+	private static int[][] applyLapEdge(int[][] arr){
 		int sum = 0;
 		int avg;
 		//"frame" refers to small segment being modified at a time
@@ -144,6 +143,153 @@ class BitImage{
 				}else if(sum < 0){
 					sum = 0;
 				}
+
+				if(sum <= threshold){
+					outputArray[currentStartRow+1][currentStartColumn+1] = 255;
+					sum = 0;
+				}else{
+					outputArray[currentStartRow+1][currentStartColumn+1] = 0;
+					sum = 0;
+				}
+
+				currentStartColumn += 1;//frameX;
+				currentMaxColumn += 1; //frameX;
+			}
+			currentStartRow += 1;//frameY;
+			currentMaxRow += 1;//frameY;
+			currentMaxColumn = 3;//frameX;
+			currentStartColumn = 0;
+			//System.out.println("adding to row");
+		}
+		return outputArray;
+	}
+
+	private static int[][] kirschEdge(int[][] arr) //whoops, its actually kirsch
+	{
+		int sum = 0;
+		int tempSumN = 0;
+		int tempSumS = 0;
+		int tempSumW = 0;
+		int tempSumE = 0;
+		int tempSumNE = 0;
+		int tempSumNW = 0;
+		int tempSumSW = 0;
+		int tempSumSE = 0;
+		int threshold = 350;
+		int avg;
+		//"frame" refers to small segment being modified at a time
+		int frameX = 3;
+		int frameY = 3;
+		int currentStartRow = 0;
+		int currentMaxRow = 3;
+		int currentStartColumn = 0;
+		int currentMaxColumn = 3;
+		int kernelColumn = 0;
+		int kernelRow = 0;
+		int [][] outputArray = new int[arr.length][arr[0].length];
+		int [][]  N = new int[][] {
+			{-3, -3, 5},
+			{-3, 0, 5},
+			{-3, -3, 5}
+		};
+		int [][]  NW = new int[][] {
+			{-3, -5, 5},
+			{-3, 0, 5},
+			{-3, -3, -3}
+		};
+		int [][]  W = new int[][] {
+			{5, 5, 5},
+			{-3, 0, -3},
+			{-3, -3, -3}
+		};
+		int [][]  SW = new int[][] {
+			{5, 5, -3},
+			{5, 0,-3},
+			{-3, -3, -3}
+		};
+		int [][]  S = new int[][] {
+			{5, -3, -3},
+			{5, 0, -3},
+			{5, -3, -3}
+		};
+		int [][]  SE = new int[][] {
+			{-3, -3, -3},
+			{5, 0, -3},
+			{5, 5, -3}
+		};
+		int [][]  E = new int[][] {
+			{-3, -3, -3},
+			{-3, 0, -3},
+			{5, 5, 5}
+		};
+		int [][]  NE = new int[][] {
+			{-3, -3, -3},
+			{-3, 0, 5},
+			{-3, 5, 5}
+		};
+
+		//operate on rows
+		while(currentMaxRow < arr.length)
+		{
+			//System.out.println("currentStartRow = " + currentStartRow);
+			//operate on columns
+			while(currentMaxColumn < arr[0].length)
+			{
+				//System.out.println("currentStartColumn = " + currentStartColumn);
+				//gather average of frame
+				for(int i=currentStartRow; i<currentMaxRow; i++)
+				{
+					for(int j=currentStartColumn; j<currentMaxColumn; j++)
+					{
+						kernelColumn = j%3;
+						kernelRow = i%3;
+
+						tempSumN += N[kernelRow][kernelColumn]*arr[i][j];
+						tempSumW += W[kernelRow][kernelColumn]*arr[i][j];
+						tempSumE += E[kernelRow][kernelColumn]*arr[i][j];
+						tempSumS += S[kernelRow][kernelColumn]*arr[i][j];
+
+						tempSumNE += NE[kernelRow][kernelColumn]*arr[i][j];
+						tempSumNW += NW[kernelRow][kernelColumn]*arr[i][j];
+						tempSumSE += SE[kernelRow][kernelColumn]*arr[i][j];
+						tempSumSW += SW[kernelRow][kernelColumn]*arr[i][j];
+
+					}
+				}
+				if(tempSumN > sum)
+					sum = tempSumN;
+				if(tempSumS > sum)
+					sum = tempSumS;
+				if(tempSumW > sum)
+					sum = tempSumW;
+				if(tempSumE > sum)
+					sum = tempSumE;
+				if(tempSumNE > sum)
+					sum = tempSumNE;
+				if(tempSumSW > sum)
+					sum = tempSumSW;
+				if(tempSumNW > sum)
+					sum = tempSumNW;
+				if(tempSumSE > sum)
+					sum = tempSumSE;
+
+				tempSumE = 0;
+				tempSumN = 0;
+				tempSumS = 0;
+				tempSumW = 0;
+				tempSumNE = 0;
+				tempSumNW = 0;
+				tempSumSE = 0;
+				tempSumSW = 0;
+
+				//System.out.println("sum variable is: " + sum);
+/*
+				if(sum > 255){
+					sum = 255;
+				}else if(sum < 0){
+					sum = 0;
+				}
+*/
 
 				if(sum <= threshold){
 					outputArray[currentStartRow+1][currentStartColumn+1] = 255;
@@ -361,7 +507,11 @@ class BitImage{
 	}
 
 	public BufferedImage applyLapicianEdgeDetection(String filename) throws IOException{
-		return writeToImage(lapicianEdge(getPixelArray(filename)));
+		return writeToImage(applyLapEdge(getPixelArray(filename)));
+	}
+
+	public BufferedImage applyKirschEdgeDetection(String filename) throws IOException{
+		return writeToImage(kirschEdge(getPixelArray(filename)));
 	}
 
 	public BufferedImage applyContrast(String filename, int constrast, int brightness) throws IOException{
