@@ -16,6 +16,8 @@ If you want a more mature tested version of this
 
 > git clone https://github.com/Somnibyte/IdentifyBox.git 
 
+To run, do these steps:
+
 >compile:	javac ImageProcessGUI.java
 
 >run: 		java ImageProcessGUI
