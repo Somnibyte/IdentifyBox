@@ -8,9 +8,15 @@
 
 If you are just stumbling on this repository, do this
 
-> git clone https://github.com/Somnibyte/IdentifyBox.git 
+> git clone -b develop https://github.com/Somnibyte/IdentifyBox.git 
 
 That repository will have the latest commits.
+
+If you want a more mature tested version of this 
+
+> git clone https://github.com/Somnibyte/IdentifyBox.git 
+
+To run, do these steps:
 
 >compile:	javac ImageProcessGUI.java
 
