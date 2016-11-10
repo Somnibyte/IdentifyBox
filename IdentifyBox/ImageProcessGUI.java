@@ -119,7 +119,7 @@ class LoadInitialImagePanel extends JPanel{
 class ImageTransformPanel extends JPanel{
 
 	private JButton loadImageBtn, applyOperationBtn;
-	private JRadioButton smoothRdioBtn, contrastRdioBtn, histogramRdioBtn, lapicianRdioBtn;
+	private JRadioButton smoothRdioBtn, contrastRdioBtn, histogramRdioBtn, kirschRdioBtn, lapicianRdioBtn;
 	private ButtonGroup imgProcessOperations;
 	private JLabel kernelLabel;
 	private JSpinner matOrderJSpinner;		// Input for order
@@ -141,6 +141,7 @@ class ImageTransformPanel extends JPanel{
 		loadImageBtn = new JButton("Load Image to be Processed");
 		smoothRdioBtn = new JRadioButton("Apply smoothing");
 		histogramRdioBtn = new JRadioButton("Apply histogram equalization");
+		kirschRdioBtn = new JRadioButton("Apply kirsch edge detection");
 		lapicianRdioBtn = new JRadioButton("Apply lapician edge detection");
 		contrastRdioBtn = new JRadioButton("Apply constrast");
 		applyOperationBtn = new JButton("Apply operation to image");
@@ -158,6 +159,7 @@ class ImageTransformPanel extends JPanel{
 
 		smoothRdioBtn.setEnabled(false);
 		histogramRdioBtn.setEnabled(false);
+		kirschRdioBtn.setEnabled(false);
 		lapicianRdioBtn.setEnabled(false);
 		contrastRdioBtn.setEnabled(false);
 
@@ -182,6 +184,7 @@ class ImageTransformPanel extends JPanel{
 
 				smoothRdioBtn.setEnabled(true);
 				histogramRdioBtn.setEnabled(true);
+				kirschRdioBtn.setEnabled(true);
 				lapicianRdioBtn.setEnabled(true);
 				contrastRdioBtn.setEnabled(true);
 			}
@@ -221,6 +224,12 @@ class ImageTransformPanel extends JPanel{
         			} catch(IOException ie){
         				ie.printStackTrace();
    					}
+   				 } else if(e.getSource() == kirschRdioBtn){
+            	 	try{
+            	 		img = bitImage.applyKirschEdgeDetection(imagePath);
+        			} catch(IOException ie){
+        				ie.printStackTrace();
+   					}
             	 } else if(e.getSource() == lapicianRdioBtn){
             	 	try{
             	 		img = bitImage.applyLapicianEdgeDetection(imagePath);
@@ -233,6 +242,7 @@ class ImageTransformPanel extends JPanel{
 
 		smoothRdioBtn.addActionListener(actListner);
 		histogramRdioBtn.addActionListener(actListner);
+		kirschRdioBtn.addActionListener(actListner);
 		lapicianRdioBtn.addActionListener(actListner);
 		contrastRdioBtn.addActionListener(actListner);
 
@@ -276,6 +286,7 @@ class ImageTransformPanel extends JPanel{
 		add(smoothRdioBtn);
 		add(histogramRdioBtn);
 		add(lapicianRdioBtn);
+		add(kirschRdioBtn);
 		add(contrastRdioBtn);
 		add(extrasPanel);
 		add(applyOperationBtn);
