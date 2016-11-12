@@ -99,13 +99,15 @@ class BitImage{
 	}
 
 
-	private static void houghTransform(int[][] arr)
+	private static int[][] houghTransform(int[][] arr)
 	{
 		/* NOTICE: HoughTranform only takes in array that has edges (255), will not work otherwise */
 		int lengthofDiagOfImg = (int) Math.sqrt(arr.length * arr.length + arr[0].length * arr[0].length);
 
+
 		// Initialize the accumulator to 0
-		int [][] accum = new int[180][lengthofDiagOfImg*2];
+		int [][] accum = new int[181][(lengthofDiagOfImg*2)+1];
+
 
 		// For each image point P
 		for (int x = 0; x < arr.length; x++){
@@ -119,13 +121,16 @@ class BitImage{
 					for(int theta = 0; theta <= 180; theta++){
 						// Testing rho values. Keeping it positive by adding length of diagonal of the image
 						int rho =  ((int)(x * Math.cos(Math.toRadians(theta))) +  (int)(y * Math.sin(Math.toRadians(theta)))) + lengthofDiagOfImg;
-						System.out.println("Rho: " + rho);
+						System.out.println(rho);
+						System.out.println(theta);
+						accum[theta][rho]++;
 					}
 
 				}
 			}
 		}
 
+			return accum;
 	}
 
 	private static int[][] applyLapEdge(int[][] arr){
