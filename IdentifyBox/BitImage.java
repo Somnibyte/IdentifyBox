@@ -41,7 +41,7 @@ class BitImage{
 		*/
 		//***Smoothing process***
 		System.out.println("Now applying kirsch filter...");
-		writeToFile(writeToImage(kirschEdge(smooth(getPixelArray(input_file), 6, 6))), outfile_file_kirschEdge);
+		houghTransform(kirschEdge(smooth(getPixelArray(input_file), 6, 6)));
 
 
 	}
@@ -98,6 +98,35 @@ class BitImage{
 		return arr;
 	}
 
+
+	private static void houghTransform(int[][] arr)
+	{
+		/* NOTICE: HoughTranform only takes in array that has edges (255), will not work otherwise */
+		int lengthofDiagOfImg = (int) Math.sqrt(arr.length * arr.length + arr[0].length * arr[0].length);
+
+		// Initialize the accumulator to 0
+		int [][] accum = new int[180][lengthofDiagOfImg*2];
+
+		// For each image point P
+		for (int x = 0; x < arr.length; x++){
+			for (int y = 0; y < arr[x].length; y++){
+
+				// If p is part of an edge ...
+				if (arr[x][y] == 255 ){
+
+					System.out.println("x: " + x + " y: " + y);
+					// Use the accumulator to collect possible lines for this edge
+					for(int theta = 0; theta <= 180; theta++){
+						// Testing rho values. Keeping it positive by adding length of diagonal of the image
+						int rho =  ((int)(x * Math.cos(Math.toRadians(theta))) +  (int)(y * Math.sin(Math.toRadians(theta)))) + lengthofDiagOfImg;
+						System.out.println("Rho: " + rho);
+					}
+
+				}
+			}
+		}
+
+	}
 
 	private static int[][] applyLapEdge(int[][] arr){
 		int sum = 0;
@@ -488,13 +517,13 @@ class BitImage{
 		if (!ImageIO.write(image, "BMP", new File(file_to_save))) {
   			throw new RuntimeException("Unexpected error writing image");
 		}
-	
+
 	}
 
 
 	/**
 	 * Start of public methods for GUI
-	 * 
+	 *
 	 */
 	// Public methods
 
