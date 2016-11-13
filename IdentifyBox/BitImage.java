@@ -28,7 +28,7 @@ class BitImage{
 
 		// Files to play with
 		String input_file = "./input/im1-c.bmp";
-		String output_file_constrast = "constrast.bmp";
+		String output_file_constrast = "lap.bmp";
 		String outfile_file_kirschEdge = "smoothing_with_kirschEdge.bmp";
 
 /*
@@ -40,8 +40,11 @@ class BitImage{
 		writeToFile(writeToImage(constrast(getPixelArray(input_file), 3, 127)), output_file_constrast);
 		*/
 		//***Smoothing process***
-		System.out.println("Now applying kirsch filter...");
-		houghTransform(kirschEdge(smooth(getPixelArray(input_file), 6, 6)));
+
+		// Just testing older laplacian kernel 
+		System.out.println("Now applying lap filter...");
+
+		writeToFile(writeToImage(applyLapEdge(smooth(getPixelArray(input_file), 6,6))), output_file_constrast);
 
 
 	}
@@ -116,17 +119,23 @@ class BitImage{
 				// If p is part of an edge ...
 				if (arr[x][y] == 255 ){
 
-					System.out.println("x: " + x + " y: " + y);
+					//System.out.println("x: " + x + " y: " + y);
 					// Use the accumulator to collect possible lines for this edge
 					for(int theta = 0; theta <= 180; theta++){
 						// Testing rho values. Keeping it positive by adding length of diagonal of the image
 						int rho =  ((int)(x * Math.cos(Math.toRadians(theta))) +  (int)(y * Math.sin(Math.toRadians(theta)))) + lengthofDiagOfImg;
-						System.out.println(rho);
-						System.out.println(theta);
+						//System.out.println(rho);
+						//System.out.println(theta);
 						accum[theta][rho]++;
 					}
 
 				}
+			}
+		}
+
+		for(int i = 0; i < 181; i ++){
+			for(int j = 0 ;j < (lengthofDiagOfImg*2)+1; j++){
+				System.out.println(accum[i][j]);
 			}
 		}
 
@@ -148,9 +157,9 @@ class BitImage{
 		int [][] outputArray = new int[arr.length][arr[0].length];
 		int threshold = 10;
 		int [][] weightedKernel = new int[][] {
-			{-1, -1, -1},
-			{-1, 8, -1},
-			{-1, -1, -1}
+			{0, -1, 0},
+			{-1, 4, -1},
+			{0, -1, 0}
 		};
 
 		//operate on rows
