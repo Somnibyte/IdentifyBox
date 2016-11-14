@@ -10,6 +10,8 @@ Raster - data structure that holds image data (allows us to scan image data)
 SampleModel - Interface that allows for pixel extraction.
 */
 
+import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.awt.Point;
@@ -46,9 +48,10 @@ class BitImage{
 		// Just testing older laplacian kernel
 		System.out.println("Now applying lap filter...");
 
-		// prints out the first r value
-		System.out.println(houghTransform(applyLapEdge(smooth(getPixelArray(input_file), 6,6))).get(0).r);
-
+    // prints out the first r value
+    List<rThetaPair> hough = houghTransform(applyLapEdge(smooth(getPixelArray(input_file), 6,6)));
+    BufferedImage img = writeToImage(applyLapEdge(smooth(getPixelArray(input_file), 6,6)));
+    drawLinesFromAccum(hough, img, applyLapEdge(smooth(getPixelArray(input_file), 6,6)));
 
 	}
 
@@ -105,10 +108,46 @@ class BitImage{
 	}
 
 
+  public static void drawLinesFromAccum(List<rThetaPair> bestLines, BufferedImage inputImage, int [][] arr){
+
+    int lengthofDiagOfImg = (int) Math.sqrt(arr.length * arr.length + arr[0].length * arr[0].length);
+  	Graphics2D g2d = inputImage.createGraphics();
+  	g2d.setBackground(Color.WHITE);
+  	g2d.setColor(Color.RED);
+  	BasicStroke bs = new BasicStroke(2);
+  	g2d.setStroke(bs);
+
+    for(int i = 0; i < bestLines.size(); i++){
+      int x = (int) bestLines.get(i).r * (int) Math.cos(Math.toRadians(bestLines.get(i).theta));
+      int y = (int) bestLines.get(i).r * (int) Math.sin(Math.toRadians(bestLines.get(i).theta));
+
+      int px_1 = (int) (x + lengthofDiagOfImg * (int) Math.cos(Math.toRadians(bestLines.get(i).theta)));
+      int py_1 = (int) (y + lengthofDiagOfImg * (int) Math.sin(Math.toRadians(bestLines.get(i).theta)));
+      int px_2 = (int) (x - lengthofDiagOfImg * (int) Math.cos(Math.toRadians(bestLines.get(i).theta)));
+      int py_2 = (int) (y - lengthofDiagOfImg * (int) Math.sin(Math.toRadians(bestLines.get(i).theta)));
+
+      if(px_1 > px_2){
+        g2d.drawLine(px_2, py_2, px_1, px_1);
+      }else{
+        g2d.drawLine(px_1, py_1, px_2, px_2);
+      }
+
+
+    }
+
+    try{
+      writeToFile(inputImage, "hough.bmp");
+    }catch(IOException e){
+      e.printStackTrace();
+    }
+
+  }
+
+
 	public static List<rThetaPair> returnPopularPairs(int[][] accum, int lengthofDiagOfImg){
 
 		List<rThetaPair> bestPairs = new ArrayList<rThetaPair>();
-		int threshold = 680; // test
+		int threshold = 690; // test
 
 		for(int theta = 0; theta < 181; theta ++){
 			for(int r = 0 ; r < (lengthofDiagOfImg*2)+1; r++){
