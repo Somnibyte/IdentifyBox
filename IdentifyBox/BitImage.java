@@ -48,11 +48,16 @@ class BitImage{
 		// Just testing older laplacian kernel
 		System.out.println("Now applying lap filter...");
 
-    // prints out the first r value
-    List<rThetaPair> hough = houghTransform(applyLapEdge(smooth(getPixelArray(input_file), 6,6)));
-    BufferedImage img = writeToImage(applyLapEdge(smooth(getPixelArray(input_file), 6,6)));
-    drawLinesFromAccum(hough, img, applyLapEdge(smooth(getPixelArray(input_file), 6,6)));
+    // Hough Tranform Code Test
+    //List<rThetaPair> hough = houghTransform(applyLapEdge(smooth(getPixelArray(input_file), 6,6)));
+    //BufferedImage img = writeToImage(applyLapEdge(smooth(getPixelArray(input_file), 6,6)));
+    //drawLinesFromAccum(hough, img, applyLapEdge(smooth(getPixelArray(input_file), 6,6)));
 
+
+    // Resize Code Test
+    BufferedImage img = writeToImage(getPixelArray(input_file));
+    BufferedImage newImg = resizeImage(img, 200,200);
+    writeToFile(newImg, "small.bmp");
 	}
 
 
@@ -95,6 +100,16 @@ class BitImage{
 
 
 
+  // Resizing Method
+  private static BufferedImage resizeImage(BufferedImage inputImage, int width, int height){
+
+    BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+    Graphics g = newImage.createGraphics();
+    g.drawImage(inputImage, 0, 0, width, height, null);
+    g.dispose();
+
+    return newImage;
+  }
 
 	// Contrast Adjustment
 	private static int[][] constrast(int[][] arr, int contrast, int brightness){
