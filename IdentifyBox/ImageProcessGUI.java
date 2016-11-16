@@ -12,7 +12,7 @@
 *
 *
 *	Components are added in the order they appear.
-* 
+*
  */
 
 import java.awt.*;
@@ -42,10 +42,10 @@ public class ImageProcessGUI extends JFrame{
 
 		loadPanel = new LoadInitialImagePanel("Original Image");
 		transformPanel = new ImageTransformPanel("Steps to generate output images", loadPanel);
-		
-		add(loadPanel, BorderLayout.CENTER);			
+
+		add(loadPanel, BorderLayout.CENTER);
 		add(transformPanel, BorderLayout.LINE_END);
-		
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(950, 750);
 		setVisible(true);
@@ -58,12 +58,12 @@ public class ImageProcessGUI extends JFrame{
                 new ImageProcessGUI();
             }
         });
-	} 
+	}
 }
 
 
 /**
- *  This acts the display for the initial image to be processed 
+ *  This acts the display for the initial image to be processed
  */
 class LoadInitialImagePanel extends JPanel{
 
@@ -105,10 +105,10 @@ class LoadInitialImagePanel extends JPanel{
 		add(loadImageBtn);
 		add(imgTitleLabel);
 		add(emptyLabel);
-		
+
 	}
 
-	
+
 	public String getPath(){
 		return path;
 	}
@@ -119,7 +119,7 @@ class LoadInitialImagePanel extends JPanel{
 class ImageTransformPanel extends JPanel{
 
 	private JButton loadImageBtn, applyOperationBtn;
-	private JRadioButton smoothRdioBtn, contrastRdioBtn, histogramRdioBtn, kirschRdioBtn, lapicianRdioBtn;
+	private JRadioButton smoothRdioBtn, contrastRdioBtn, histogramRdioBtn, kirschRdioBtn, lapicianRdioBtn, thinningRdioBtn;
 	private ButtonGroup imgProcessOperations;
 	private JLabel kernelLabel;
 	private JSpinner matOrderJSpinner;		// Input for order
@@ -128,7 +128,7 @@ class ImageTransformPanel extends JPanel{
 	private String imagePath = " ";
 	private BufferedImage img;
 	private int order = 3;				// Since kernel is a order by order matrix
-	
+
 	private BitImage bitImage = new BitImage();
 	private KernelGrid kernelVals_GUI;
 
@@ -144,6 +144,7 @@ class ImageTransformPanel extends JPanel{
 		kirschRdioBtn = new JRadioButton("Apply kirsch edge detection");
 		lapicianRdioBtn = new JRadioButton("Apply lapician edge detection");
 		contrastRdioBtn = new JRadioButton("Apply constrast");
+		thinningRdioBtn = new JRadioButton("Apply thinning");
 		applyOperationBtn = new JButton("Apply operation to image");
 
 		extrasPanel = new JPanel();			// holds all kernel related stuff
@@ -156,12 +157,14 @@ class ImageTransformPanel extends JPanel{
 		imgProcessOperations.add(histogramRdioBtn);
 		imgProcessOperations.add(lapicianRdioBtn);
 		imgProcessOperations.add(contrastRdioBtn);
+		imgProcessOperations.add(thinningRdioBtn);
 
 		smoothRdioBtn.setEnabled(false);
 		histogramRdioBtn.setEnabled(false);
 		kirschRdioBtn.setEnabled(false);
 		lapicianRdioBtn.setEnabled(false);
 		contrastRdioBtn.setEnabled(false);
+		thinningRdioBtn.setEnabled(false);
 
 
 		loadImageBtn.addActionListener(new ActionListener(){
@@ -177,7 +180,7 @@ class ImageTransformPanel extends JPanel{
 						setImagePath(file.getAbsolutePath());
 					}
 					// Loading the image from the LoadPanel
-				} else if (option == JOptionPane.NO_OPTION && " ".equals(imagePath)){ 
+				} else if (option == JOptionPane.NO_OPTION && " ".equals(imagePath)){
 					setImagePath(loadPanel.getPath());
 					System.out.println(imagePath);
 				}
@@ -187,6 +190,7 @@ class ImageTransformPanel extends JPanel{
 				kirschRdioBtn.setEnabled(true);
 				lapicianRdioBtn.setEnabled(true);
 				contrastRdioBtn.setEnabled(true);
+				thinningRdioBtn.setEnabled(true);
 			}
 		});
 
@@ -236,6 +240,12 @@ class ImageTransformPanel extends JPanel{
         			} catch(IOException ie){
         				ie.printStackTrace();
    					}
+					} else if(e.getSource() == thinningRdioBtn){
+            	 	try{
+            	 		img = bitImage.applyThinning(imagePath);
+        			} catch(IOException ie){
+        				ie.printStackTrace();
+   					}
             	 }
             }
         };
@@ -245,12 +255,13 @@ class ImageTransformPanel extends JPanel{
 		kirschRdioBtn.addActionListener(actListner);
 		lapicianRdioBtn.addActionListener(actListner);
 		contrastRdioBtn.addActionListener(actListner);
+		thinningRdioBtn.addActionListener(actListner);
 
-		
+
 		extrasPanel.setLayout(new BoxLayout(extrasPanel, BoxLayout.PAGE_AXIS));
 		extrasPanel.setBorder(new TitledBorder(new EtchedBorder(), "Extra configs for option selected"));
 
-		
+
 		matOrderJSpinner = new JSpinner (new SpinnerNumberModel(
 			3,			// initial value
 			3,			// minimum value
@@ -265,16 +276,16 @@ class ImageTransformPanel extends JPanel{
 				JSpinner gf = (JSpinner)e.getSource();
 				order = (Integer)gf.getValue();
 				updateKernel(order);
-			}	
+			}
 		});
 
 		applyOperationBtn.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent at){	
+			public void actionPerformed(ActionEvent at){
 				new OutputImageModal(img, ImageTransformPanel.this);
 			}
 		});
 
-		
+
 		inputToKernelPanel.setLayout(new BoxLayout(inputToKernelPanel, BoxLayout.LINE_AXIS));
 		inputToKernelPanel.add(kernelLabel);
 		inputToKernelPanel.add(matOrderJSpinner);
@@ -286,10 +297,12 @@ class ImageTransformPanel extends JPanel{
 		add(smoothRdioBtn);
 		add(histogramRdioBtn);
 		add(lapicianRdioBtn);
+		add(thinningRdioBtn);
 		add(kirschRdioBtn);
 		add(contrastRdioBtn);
 		add(extrasPanel);
 		add(applyOperationBtn);
+
 
 	}
 
@@ -402,7 +415,7 @@ class OutputImageModal extends JDialog{
 		ArrayList<Integer> scaledDimens = imageUtils.getScaledDimensions(img, new Dimension(500, 500));
 		outImgLabel.setIcon(new ImageIcon(imageUtils.resize(img, scaledDimens.get(0), scaledDimens.get(1))));
 
-		
+
 		ActionListener saveListner = new ActionListener(){
 			public void actionPerformed(ActionEvent avt){
 				JFileChooser fileChooser = new JFileChooser();
@@ -430,7 +443,7 @@ class OutputImageModal extends JDialog{
 			KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
 			JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-		
+
 		ActionListener exitListner = new ActionListener(){
 			public void actionPerformed(ActionEvent et){
 				dispose();

@@ -1013,6 +1013,10 @@ private static int[][] applyThinning(int[][] arr) {
 		return writeToImage(constrast(getPixelArray(filename), constrast, brightness));
 	}
 
+  public BufferedImage applyThinning(String filename) throws IOException{
+    return writeToImage(applyThinning(getPixelArray(filename)));
+  }
+
 	/**
 	 *  End of public methods for GUI
 	 */
