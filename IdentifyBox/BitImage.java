@@ -49,15 +49,20 @@ class BitImage{
 		System.out.println("Now applying lap filter...");
 
     // Hough Tranform Code Test
-    //List<rThetaPair> hough = houghTransform(applyLapEdge(smooth(getPixelArray(input_file), 6,6)));
-    //BufferedImage img = writeToImage(applyLapEdge(smooth(getPixelArray(input_file), 6,6)));
-    //drawLinesFromAccum(hough, img, applyLapEdge(smooth(getPixelArray(input_file), 6,6)));
+    //List<rThetaPair> hough = houghTransform(getPixelArray("line.bmp"));
+    //BufferedImage img = writeToImage(getPixelArray("line.bmp"));
+    //drawLinesFromAccum(hough, img, getPixelArray(input_file));
 
 
     // Resize Code Test
-    BufferedImage img = writeToImage(getPixelArray(input_file));
-    BufferedImage newImg = resizeImage(img, 200,200);
-    writeToFile(newImg, "small.bmp");
+    //BufferedImage img = writeToImage(getPixelArray(input_file));
+    //BufferedImage newImg = resizeImage(img, 200,200);
+    //writeToFile(newImg, "small.bmp");
+
+
+    // Thinning test
+    writeToFile(writeToImage(kirschEdge(smooth(getPixelArray(input_file), 3, 3))), "edge.bmp");
+    writeToFile(writeToImage(applyThinning(kirschEdge(smooth(getPixelArray(input_file), 3, 3)))), "thin1.bmp");
 	}
 
 
@@ -547,6 +552,384 @@ class BitImage{
 		}
 		return outputArray;
 	}
+
+
+  public static int[][] finalPoints(int[][] origImg, int[][] f, int sub) {
+     System.out.println("Finding Final Points.");
+ int kernelColumn = 0;
+ int currentMaxRow = 3;
+ int currentMaxColumn = 3;
+ int currentStartRow = 0;
+ int currentStartColumn = 0;
+ int kernelRow = 0;
+
+ // Final Points
+ int[][] b1 = {
+   {2, 2, 2},
+   {2, 0, 255},
+   {255, 0, 2}
+ };
+
+ int[][] b2 = {
+   {2, 2, 255},
+   {2, 0, 0},
+   {2, 255, 2}
+ };
+ int[][] b3 = {
+   {2, 0, 255},
+   {255, 0, 2},
+   {2, 2, 2}
+ };
+ int[][] b4 = {
+   {2, 255, 2},
+   {0, 0, 2},
+   {255, 2, 2}
+ };
+
+ // 0: Check with b1 and b2
+ // 1: Check with b3 and b4
+ // 2: Check with b1 and b4
+ // 3: Check with b2 and b3
+
+  //operate on rows
+  while(currentMaxRow < origImg.length)
+  {
+    //System.out.println("currentStartRow = " + currentStartRow);
+    //operate on columns
+    while(currentMaxColumn < origImg[0].length)
+    {
+      //System.out.println("currentStartColumn = " + currentStartColumn);
+      //gather average of frame
+      for(int i=currentStartRow; i<currentMaxRow; i++)
+      {
+        for(int j=currentStartColumn; j<currentMaxColumn; j++)
+        {
+          kernelColumn = j%3;
+          kernelRow = i%3;
+          // 0: Check with b1 and b2
+          if (sub == 0) {
+
+           // b1
+
+           if (b1[2][0] == origImg[currentStartRow + 2][currentStartColumn] &&
+          	b1[1][1] == origImg[currentStartRow + 1][currentStartColumn + 1] &&
+          	b1[2][1] == origImg[currentStartRow + 2][currentStartColumn + 1] &&
+          	b1[1][2] == origImg[currentStartRow + 1][currentStartColumn + 2]) {
+
+          	if (origImg[currentStartRow][currentStartColumn] == 0 ||
+          	    origImg[currentStartRow][currentStartColumn + 1] == 0 ||
+          	    origImg[currentStartRow][currentStartColumn + 2] == 0) {
+
+          	 f[currentStartRow + 1][currentStartColumn + 1] = 0;
+          	}
+
+          }
+
+           // b2
+           if (b2[0][2] == origImg[currentStartRow][currentStartColumn + 2] &&
+          	b2[1][1] == origImg[currentStartRow + 1][currentStartColumn + 1] &&
+          	b2[1][2] == origImg[currentStartRow + 1][currentStartColumn + 2] &&
+          	b2[2][1] == origImg[currentStartRow + 2][currentStartColumn + 1]) {
+
+          	if (origImg[currentStartRow][currentStartColumn] == 0 ||
+          	    origImg[currentStartRow + 1][currentStartColumn] == 0 ||
+          	    origImg[currentStartRow+ 2][currentStartColumn] == 0) {
+          	 f[currentStartRow + 1][currentStartColumn + 1] = 0;
+          	}
+
+           }
+
+          }
+          // 1: Check with b3 and b4
+          else if (sub == 1) {
+           // b3
+           if (b3[1][0] == origImg[currentStartRow + 1][currentStartColumn] &&
+          	b3[1][1] == origImg[currentStartRow + 1][currentStartColumn + 1] &&
+          	b3[0][1] == origImg[currentStartRow][currentStartColumn + 1] &&
+          	b3[0][2] == origImg[currentStartRow][currentStartColumn + 2]) {
+
+          	if (origImg[currentStartRow + 2][currentStartColumn] == 0 ||
+          	    origImg[currentStartRow + 2][currentStartColumn + 1] == 0||
+          	    origImg[currentStartRow + 2][currentStartColumn + 2] == 0) {
+
+          	 f[currentStartRow + 1][currentStartColumn + 1] = 0;
+          	}
+           }
+
+           // b4
+           if (b4[0][1] == origImg[currentStartRow][currentStartColumn + 1] &&
+          	b4[1][1] == origImg[currentStartRow + 1][currentStartColumn + 1] &&
+          	b4[1][0] == origImg[currentStartRow + 1][currentStartColumn] &&
+          	b4[2][0] == origImg[currentStartRow + 2][currentStartColumn]) {
+
+          	if (origImg[currentStartRow][currentStartColumn + 2] == 0 ||
+          	    origImg[currentStartRow + 1][currentStartColumn + 2] == 0 ||
+          	    origImg[currentStartRow + 2][currentStartColumn + 2] == 0) {
+          	 f[currentStartRow + 1][currentStartColumn + 1] = 0;
+          	}
+
+           }
+
+          }
+          // 2: Check with b1 and b4
+          else if (sub == 2) {
+            // b1
+
+            if (b1[2][0] == origImg[currentStartRow + 2][currentStartColumn] &&
+           	b1[1][1] == origImg[currentStartRow + 1][currentStartColumn + 1] &&
+           	b1[2][1] == origImg[currentStartRow + 2][currentStartColumn + 1] &&
+           	b1[1][2] == origImg[currentStartRow + 1][currentStartColumn + 2]) {
+
+           	if (origImg[currentStartRow][currentStartColumn] == 0 ||
+           	    origImg[currentStartRow][currentStartColumn + 1] == 0 ||
+           	    origImg[currentStartRow][currentStartColumn + 2] == 0) {
+
+           	 f[currentStartRow + 1][currentStartColumn + 1] = 0;
+           	}
+
+           }
+
+           // b4
+           if (b4[0][1] == origImg[currentStartRow][currentStartColumn + 1] &&
+          	b4[1][1] == origImg[currentStartRow + 1][currentStartColumn + 1] &&
+          	b4[1][0] == origImg[currentStartRow + 1][currentStartColumn] &&
+          	b4[2][0] == origImg[currentStartRow + 2][currentStartColumn]) {
+
+          	if (origImg[currentStartRow][currentStartColumn + 2] == 0 ||
+          	    origImg[currentStartRow + 1][currentStartColumn + 2] == 0 ||
+          	    origImg[currentStartRow + 2][currentStartColumn + 2] == 0) {
+          	 f[currentStartRow + 1][currentStartColumn + 1] = 0;
+          	}
+
+           }
+
+
+          }
+          // 3: Check with b2 and b3
+          else if (sub == 3) {
+            // b2
+            if (b2[0][2] == origImg[currentStartRow][currentStartColumn + 2] &&
+           	b2[1][1] == origImg[currentStartRow + 1][currentStartColumn + 1] &&
+           	b2[1][2] == origImg[currentStartRow + 1][currentStartColumn + 2] &&
+           	b2[2][1] == origImg[currentStartRow + 2][currentStartColumn + 1]) {
+
+           	if (origImg[currentStartRow][currentStartColumn] == 0 ||
+           	    origImg[currentStartRow + 1][currentStartColumn] == 0 ||
+           	    origImg[currentStartRow+ 2][currentStartColumn] == 0) {
+           	 f[currentStartRow + 1][currentStartColumn + 1] = 0;
+           	}
+
+            }
+
+            // b3
+            if (b3[1][0] == origImg[currentStartRow + 1][currentStartColumn] &&
+           	b3[1][1] == origImg[currentStartRow + 1][currentStartColumn + 1] &&
+           	b3[0][1] == origImg[currentStartRow][currentStartColumn + 1] &&
+           	b3[0][2] == origImg[currentStartRow][currentStartColumn + 2]) {
+
+           	if (origImg[currentStartRow + 2][currentStartColumn] == 0 ||
+           	    origImg[currentStartRow + 2][currentStartColumn + 1] == 0||
+           	    origImg[currentStartRow + 2][currentStartColumn + 2] == 0) {
+
+           	 f[currentStartRow + 1][currentStartColumn + 1] = 0;
+           	}
+            }
+
+
+        }
+
+      }
+    }
+
+    currentStartColumn += 1;
+    currentMaxColumn += 1;
+  }
+    currentStartRow += 1;
+    currentMaxRow += 1;
+    currentMaxColumn = 3;
+    currentStartColumn = 0;
+  }
+
+
+
+ return f;
+}
+
+public static int[][] contourPoints(int[][] origImg, int[][] c, int sub) {
+
+ System.out.println("Finding ContourPoints.");
+ int currentMaxRow = 3;
+ int currentMaxColumn = 3;
+ int currentStartRow = 0;
+ int currentStartColumn = 0;
+ int kernelColumn = 0;
+ int kernelRow = 0;
+
+ // Contour Checks
+    int[][] lower = {
+      {2, 2, 2},
+      {2, 0, 2},
+      {2, 255, 2}
+    };
+
+    int[][] upper = {
+      {2, 255, 2},
+      {2, 0, 2},
+      {2, 2, 2}
+    };
+
+    int[][] left = {
+      {2, 2, 2},
+      {255, 0, 2},
+      {2, 2, 2}
+    };
+
+    int[][] right = {
+      {2, 2, 2},
+      {2, 0, 255},
+      {2, 2, 2}
+    };
+
+    while(currentMaxRow < origImg.length)
+    {
+    	//System.out.println("currentStartRow = " + currentStartRow);
+    	//operate on columns
+    	while(currentMaxColumn < origImg[0].length)
+    	{
+    		//System.out.println("currentStartColumn = " + currentStartColumn);
+    		//gather average of frame
+    		for(int i=currentStartRow; i<currentMaxRow; i++)
+    		{
+    			for(int j=currentStartColumn; j<currentMaxColumn; j++)
+    			{
+    				kernelColumn = j%3;
+    				kernelRow = i%3;
+
+    				if (sub == 0) {
+    				 if (lower[2][1] == origImg[currentStartRow + 2][currentStartColumn + 1] && lower[1][1] == origImg[currentStartRow + 1][currentStartColumn + 1]) {
+    				    c[currentStartRow + 1][currentStartColumn + 1] = 0;
+    				 }
+    				} else if (sub == 1) {
+    				 if (upper[0][1] == origImg[currentStartRow][currentStartColumn + 1] && upper[1][1] == origImg[currentStartRow + 1][currentStartColumn + 1]) {
+    					  c[currentStartRow + 1][currentStartColumn + 1] = 0;
+    				 }
+    				} else if (sub == 2) {
+    				 if (left[1][0] == origImg[currentStartRow + 1][currentStartColumn] && left[1][1] == origImg[currentStartRow + 1][currentStartColumn + 1]) {
+    					  c[currentStartRow + 1][currentStartColumn + 1] = 0;
+    				 }
+    				} else if (sub == 3) {
+    				 if (right[1][2] == origImg[currentStartRow + 1][currentStartColumn + 2] && right[1][1] == origImg[currentStartRow + 1][currentStartColumn + 1]) {
+    					  c[currentStartRow + 1][currentStartColumn + 1] = 0;
+    				 }
+    				}
+
+    		}
+    	}
+
+    	currentStartColumn += 1;
+    	currentMaxColumn += 1;
+    }
+    	currentStartRow += 1;
+    	currentMaxRow += 1;
+    	currentMaxColumn = 3;
+    	currentStartColumn = 0;
+    }
+
+
+ return c;
+}
+
+public static int[][] updateF(int[][] currentF, int[][] newF) {
+
+ System.out.println("Updating F.");
+ for (int i = 0; i < currentF.length; i++) {
+  for (int j = 0; j < currentF[0].length; j++) {
+   if (newF[i][j] == 0) {
+    currentF[i][j] = 0;
+   } else if (newF[i][j] == 255) {
+    currentF[i][j] = 255;
+   }
+  }
+ }
+
+ return currentF;
+}
+
+public static int[][] subtractFromOriginal(int[][] original, int[][] contour, int[][] finalPoints) {
+
+ System.out.println("Subtracting Original from Contour.");
+
+ for (int i = 0; i < original.length; i++) {
+  for (int j = 0; j < original[0].length; j++) {
+   if (original[i][j] == 0 && contour[i][j] == 0) {
+    original[i][j] = 255; // Remove the edge
+   }
+  }
+ }
+
+ for (int i = 0; i < original.length; i++) {
+  for (int j = 0; j < original[0].length; j++) {
+   if (original[i][j] == 255 && finalPoints[i][j] == 0) {
+    original[i][j] = 0; // Add back the lost pixel
+   }
+  }
+ }
+
+
+return original;
+}
+
+private static int[][] applyThinning(int[][] arr) {
+ int subCycle = 0;
+
+ // Original Image
+ int[][] I = arr;
+
+ // Final Points
+ int[][] F = new int[arr.length][arr[0].length];
+
+ // Initialize F
+ for (int i = 0; i < F.length; i++) {
+  for (int j = 0; j < F[0].length; j++) {
+   F[i][j] = 255;
+  }
+ }
+
+ // Contour Points
+ int[][] C = new int[arr.length][arr[0].length];
+
+ // Initialize C
+ for (int i = 0; i < C.length; i++) {
+  for (int j = 0; j < C[0].length; j++) {
+   C[i][j] = 255;
+  }
+ }
+
+ while(true)
+ {
+
+   C = new int[arr.length][arr[0].length];
+
+   //set final points - f = f + finalpoints(I);
+   F = finalPoints(I, F, subCycle);
+
+   if(Arrays.deepEquals(F, I))
+   {
+     return I;
+   }
+
+   C = contourPoints(I, C, subCycle);
+
+   //I = I - C + F;
+   I = subtractFromOriginal(I, C, F);
+
+   subCycle = subCycle % 4;
+ }
+
+}
+
+
+
 
   // Printing pixels
 	public static void printPixelArray(int [][] array2D){
