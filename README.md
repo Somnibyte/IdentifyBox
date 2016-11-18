@@ -28,8 +28,8 @@ The first screen is shown below:
 
 ![alt text](IdentifyBox/first_screen.png "First Screen")
 
-1. The first button on the left("Load Image to be Compared Against") is to load an image from the input folder into the application. It loads the image into 
-the empty Label. Note the image dimensions have been resized to 500 by 500px. 
+1. The first button on the left("Load Initial Image") is to load an image from the input folder into the application. It loads the image into 
+the empty Label. Note the image dimensions have been resized to 500 by 500px. When you select your image, the panel below shows the image path.
 
 2. The second button on the right("Load Image to be Processed") is to load the image from the left or a new image to be processed by the operations associated with the radio buttons below it.
 
@@ -37,17 +37,21 @@ the empty Label. Note the image dimensions have been resized to 500 by 500px.
 
 4. The ApplyOperation button applies the selected operation to the image and displays the output in another dialog. Then you are given a choice to save or to not save. If you save, the saved image goes to the output folder.
 
+5. The UndoAllOperations button reverts all the operations on the image.
+
 ### TODO
 
-- [x] Build an initial GUI
-- [x] Implement simple operations, constrast, smoothing
-- [x] Implement histogram equalization
+- [x] Build an initial GUI.
+- [x] Implement simple operations: constrast, smoothing.
+- [x] Implement [histogram equalization](https://en.wikipedia.org/wiki/Histogram_equalization).
 - [x] Refactor initial GUI.
-- [ ] Implement edge detection
-- [ ] Implement Hough transform
-- [ ] Add modes to GUI(automatic and manual)
-- [ ] Refactor GUI.
-- [ ] Write better README.
+- [x] Implement [kirsch edge detection](https://en.wikipedia.org/wiki/Kirsch_operator).
+- [x] Implement [Hough transform](https://en.wikipedia.org/wiki/Hough_transform).
+- [x] Implement [Rosenfeld and Stefanelli's thining](http://dl.acm.org/citation.cfm?id=321646).
+- [ ] Add modes to GUI(automatic and manual).
+- [x] Refactor GUI.
+- [ ] Refactor GUI again.
+- [ ] Write final README.
 - [ ] Deploy as jar and Docker/Snap image.
 
 #### ISSUES
