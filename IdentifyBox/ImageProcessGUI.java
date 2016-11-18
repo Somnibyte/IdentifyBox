@@ -67,11 +67,12 @@ public class ImageProcessGUI extends JFrame{
  */
 class LoadInitialImagePanel extends JPanel{
 
-	private JLabel imgTitleLabel, emptyLabel;
-	private JButton loadImageBtn;
+	private JLabel imgTitleLabel, emptyLabel, imagePathLabel;
+	private JButton loadInitialImageBtn;
 
 	private ImageUtils imageUtils = new ImageUtils();
 	private String path = " ";
+	private String firstPath = " ";
 
 	public LoadInitialImagePanel(String title){
 		super();
@@ -80,8 +81,10 @@ class LoadInitialImagePanel extends JPanel{
 
 		imgTitleLabel = new JLabel("Image:");
 		emptyLabel = new JLabel();
-		loadImageBtn = new JButton("Load Image to be Compared Against");
-		loadImageBtn.addActionListener(new ActionListener(){
+		imagePathLabel = new JLabel();
+		loadInitialImageBtn = new JButton("Load Initial Image");
+
+		loadInitialImageBtn.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
 				JFileChooser fc = new JFileChooser();
 				fc.setCurrentDirectory(new File(new File("").getAbsolutePath(), "input"));
@@ -90,7 +93,8 @@ class LoadInitialImagePanel extends JPanel{
 				int result = fc.showOpenDialog(null);
 				if (result == JFileChooser.APPROVE_OPTION){
 					File file = fc.getSelectedFile();
-					path = file.getAbsolutePath();
+					setPath(file.getAbsolutePath());
+					firstPath = path;
 					try{
 						BufferedImage img = ImageIO.read(file);
 						ArrayList<Integer> scaledDimens = imageUtils.getScaledDimensions(img, new Dimension(500, 500));
@@ -98,16 +102,35 @@ class LoadInitialImagePanel extends JPanel{
 					} catch (IOException evt){
 						evt.printStackTrace();
 					}
+					JButton jb = (JButton) e.getSource();
+					jb.setEnabled(false);
 				}
 			}
 		});
 
-		add(loadImageBtn);
+		add(loadInitialImageBtn);
 		add(imgTitleLabel);
 		add(emptyLabel);
-
+		add(imagePathLabel);
 	}
 
+	public void setPath(String path){
+		this.path = path;
+		StringBuilder sb = new StringBuilder();
+		sb.append("<html>");
+		sb.append("<center><u>Path of the image file</u><br>");
+		sb.append(path);
+		sb.append("</html>");
+		imagePathLabel.setText(sb.toString());
+	}
+
+	public String getInitialImagePath(){
+		return firstPath;
+	}
+
+	public JLabel getImagePanel(){
+		return emptyLabel;
+	}
 
 	public String getPath(){
 		return path;
@@ -118,19 +141,22 @@ class LoadInitialImagePanel extends JPanel{
 
 class ImageTransformPanel extends JPanel{
 
-	private JButton loadImageBtn, applyOperationBtn;
-	private JRadioButton smoothRdioBtn, contrastRdioBtn, histogramRdioBtn, kirschRdioBtn, lapicianRdioBtn, thinningRdioBtn;
+	private JButton loadImageBtn, applyOperationBtn, resetBtn;
+	private JRadioButton smoothRdioBtn, contrastRdioBtn, histogramRdioBtn, kirschRdioBtn, thinningRdioBtn;
 	private ButtonGroup imgProcessOperations;
 	private JLabel kernelLabel;
 	private JSpinner matOrderJSpinner;		// Input for order
-	private JPanel extrasPanel;
+	private JPanel extrasPanel, transformCmdPanel;
 
+	private ImageUtils imageUtils = new ImageUtils();
 	private String imagePath = " ";
 	private BufferedImage img;
 	private int order = 3;				// Since kernel is a order by order matrix
 
 	private BitImage bitImage = new BitImage();
 	private KernelGrid kernelVals_GUI;
+
+	private boolean isThereAnEdgeImage = false;
 
 	public ImageTransformPanel(String titled, LoadInitialImagePanel loadPanel){
 		super();
@@ -142,27 +168,28 @@ class ImageTransformPanel extends JPanel{
 		smoothRdioBtn = new JRadioButton("Apply smoothing");
 		histogramRdioBtn = new JRadioButton("Apply histogram equalization");
 		kirschRdioBtn = new JRadioButton("Apply kirsch edge detection");
-		lapicianRdioBtn = new JRadioButton("Apply lapician edge detection");
 		contrastRdioBtn = new JRadioButton("Apply constrast");
 		thinningRdioBtn = new JRadioButton("Apply thinning");
 		applyOperationBtn = new JButton("Apply operation to image");
+		resetBtn = new JButton("Undo all operations");
+
 
 		extrasPanel = new JPanel();			// holds all kernel related stuff
 		JPanel inputToKernelPanel = new JPanel();
 		kernelLabel = new JLabel("Enter n for an n by n kernel");
 
+		transformCmdPanel = new JPanel();
+		transformCmdPanel.setLayout(new BoxLayout(transformCmdPanel, BoxLayout.X_AXIS));
 
 		imgProcessOperations = new ButtonGroup ();
 		imgProcessOperations.add(smoothRdioBtn);
 		imgProcessOperations.add(histogramRdioBtn);
-		imgProcessOperations.add(lapicianRdioBtn);
 		imgProcessOperations.add(contrastRdioBtn);
 		imgProcessOperations.add(thinningRdioBtn);
 
 		smoothRdioBtn.setEnabled(false);
 		histogramRdioBtn.setEnabled(false);
 		kirschRdioBtn.setEnabled(false);
-		lapicianRdioBtn.setEnabled(false);
 		contrastRdioBtn.setEnabled(false);
 		thinningRdioBtn.setEnabled(false);
 
@@ -188,13 +215,12 @@ class ImageTransformPanel extends JPanel{
 				smoothRdioBtn.setEnabled(true);
 				histogramRdioBtn.setEnabled(true);
 				kirschRdioBtn.setEnabled(true);
-				lapicianRdioBtn.setEnabled(true);
 				contrastRdioBtn.setEnabled(true);
 				thinningRdioBtn.setEnabled(true);
 			}
 		});
 
-		// Will remove hardcoded values
+		
 		ActionListener actListner = new ActionListener(){
 			@Override
    			public void actionPerformed(ActionEvent e) {
@@ -206,7 +232,9 @@ class ImageTransformPanel extends JPanel{
 	            	 		int frameX = Integer.parseInt(values[0]);
 	            	 		int frameY = Integer.parseInt(values[1]);
 	        				img = bitImage.applySmoothing((imagePath), frameX, frameY);
-	        			}
+	        			} else{
+            	 			imgProcessOperations.clearSelection();
+            	 		}
         			} catch(IOException ie){
         				ie.printStackTrace();
         			}
@@ -224,6 +252,8 @@ class ImageTransformPanel extends JPanel{
 	            	 		int contrast = Integer.parseInt(values[0]);
 	            	 		int brightness = Integer.parseInt(values[1]);
             	 			img = bitImage.applyContrast((imagePath), contrast, brightness);
+            	 		} else{
+            	 			imgProcessOperations.clearSelection();	
             	 		}
         			} catch(IOException ie){
         				ie.printStackTrace();
@@ -231,18 +261,19 @@ class ImageTransformPanel extends JPanel{
    				 } else if(e.getSource() == kirschRdioBtn){
             	 	try{
             	 		img = bitImage.applyKirschEdgeDetection(imagePath);
+            	 		isThereAnEdgeImage = true;
         			} catch(IOException ie){
         				ie.printStackTrace();
    					}
-            	 } else if(e.getSource() == lapicianRdioBtn){
+				 } else if(e.getSource() == thinningRdioBtn){
             	 	try{
-            	 		img = bitImage.applyLapicianEdgeDetection(imagePath);
-        			} catch(IOException ie){
-        				ie.printStackTrace();
-   					}
-					} else if(e.getSource() == thinningRdioBtn){
-            	 	try{
-            	 		img = bitImage.applyThinning(imagePath);
+            	 		if (isThereAnEdgeImage == true){
+            	 			img = bitImage.applyThinning(imagePath);
+            	 		} else {
+            	 			JOptionPane.showMessageDialog(null, "You need to have already applied the kirsch Edge detection!!",
+            	 				"Warning", JOptionPane.ERROR_MESSAGE);
+            	 			imgProcessOperations.clearSelection();
+            	 		}
         			} catch(IOException ie){
         				ie.printStackTrace();
    					}
@@ -253,7 +284,6 @@ class ImageTransformPanel extends JPanel{
 		smoothRdioBtn.addActionListener(actListner);
 		histogramRdioBtn.addActionListener(actListner);
 		kirschRdioBtn.addActionListener(actListner);
-		lapicianRdioBtn.addActionListener(actListner);
 		contrastRdioBtn.addActionListener(actListner);
 		thinningRdioBtn.addActionListener(actListner);
 
@@ -281,7 +311,20 @@ class ImageTransformPanel extends JPanel{
 
 		applyOperationBtn.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent at){
-				new OutputImageModal(img, ImageTransformPanel.this);
+				new OutputImageModal(img, ImageTransformPanel.this, loadPanel);
+			}
+		});
+
+		resetBtn.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent atv){
+				try{
+					BufferedImage img = ImageIO.read(new File(loadPanel.getInitialImagePath()));
+					ArrayList<Integer> scaledDimens = imageUtils.getScaledDimensions(img, new Dimension(500, 500));
+					loadPanel.getImagePanel().setIcon(new ImageIcon(imageUtils.resize(img, scaledDimens.get(0), scaledDimens.get(1))));
+					loadPanel.setPath(loadPanel.getInitialImagePath());
+				} catch (IOException evt){
+						evt.printStackTrace();
+				}
 			}
 		});
 
@@ -293,16 +336,17 @@ class ImageTransformPanel extends JPanel{
 		extrasPanel.add(inputToKernelPanel);
 		extrasPanel.add(kernelVals_GUI);
 
+		transformCmdPanel.add(applyOperationBtn);
+		transformCmdPanel.add(resetBtn);
+
 		add(loadImageBtn);
 		add(smoothRdioBtn);
 		add(histogramRdioBtn);
-		add(lapicianRdioBtn);
 		add(thinningRdioBtn);
 		add(kirschRdioBtn);
 		add(contrastRdioBtn);
 		add(extrasPanel);
-		add(applyOperationBtn);
-
+		add(transformCmdPanel);
 
 	}
 
@@ -402,7 +446,7 @@ class OutputImageModal extends JDialog{
 	private ImageUtils imageUtils = new ImageUtils();
 	private JPanel imagePanel, commandPanel;
 
-	public OutputImageModal(BufferedImage img, ImageTransformPanel transformPanel){
+	public OutputImageModal(BufferedImage img, ImageTransformPanel transformPanel, LoadInitialImagePanel loadPanel){
 
 		imagePanel = new JPanel(new BorderLayout());
 		commandPanel = new JPanel(new FlowLayout());
@@ -413,7 +457,8 @@ class OutputImageModal extends JDialog{
 		outImgLabel.setBorder(new TitledBorder(new EtchedBorder(), "Output Image"));
 
 		ArrayList<Integer> scaledDimens = imageUtils.getScaledDimensions(img, new Dimension(500, 500));
-		outImgLabel.setIcon(new ImageIcon(imageUtils.resize(img, scaledDimens.get(0), scaledDimens.get(1))));
+		ImageIcon icon = new ImageIcon(imageUtils.resize(img, scaledDimens.get(0), scaledDimens.get(1)));
+		outImgLabel.setIcon(icon);
 
 
 		ActionListener saveListner = new ActionListener(){
@@ -429,6 +474,8 @@ class OutputImageModal extends JDialog{
  				    transformPanel.setImagePath(file.getAbsolutePath());
  				    try{
      					ImageIO.write(img, "bmp", file);
+						loadPanel.getImagePanel().setIcon(icon);
+						loadPanel.setPath(file.getAbsolutePath());
      				} catch (IOException | RuntimeException ex){
      					ex.printStackTrace();
      				}
