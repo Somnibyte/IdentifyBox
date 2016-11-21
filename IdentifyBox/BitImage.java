@@ -46,6 +46,7 @@ class BitImage{
 		System.out.println("Reading an bitmap image" + input_file);
 		System.out.println("Printing the file in [0-255] range " + input_file);
 		//printPixelArray(getPixelArray(filename));
+
 		//***Histogram process***
 		System.out.println("Now applying contrast filter...");
 		writeToFile(writeToImage(constrast(getPixelArray(input_file), 3, 127)), output_file_constrast);
@@ -60,17 +61,41 @@ class BitImage{
     //BufferedImage img = writeToImage(getPixelArray("line.bmp"));
     //drawLinesFromAccum(hough, img, getPixelArray(input_file));
 
-
     // Resize Code Test
     //BufferedImage img = writeToImage(getPixelArray(input_file));
     //BufferedImage newImg = resizeImage(img, 200,200);
     //writeToFile(newImg, "small.bmp");
 
-      writeToFile(writeToImage(smooth(getPixelArray(box3), 3,3)), "smooth2.bmp");
-      writeToFile(writeToImage(constrast(getPixelArray("smooth2.bmp"),3,127)), "contrast2.bmp");
-      writeToFile(writeToImage(kirschEdge(getPixelArray("contrast2.bmp"))), "kirsch2.bmp");
+		writeToFile(writeToImage(constrast(darken(getPixelArray(input_file), 90), 2,1)), "contrast.bmp");
+		writeToFile(writeToImage(smooth(getPixelArray("contrast.bmp"), 6,6)), "smooth.bmp");
+		writeToFile(writeToImage(kirschEdge(getPixelArray("smooth.bmp"))), "kirsch.bmp");
 
-	}
+		// Template Matching Test
+
+		ArrayList<Point2D.Float> pointArr = new ArrayList<Point2D.Float>();
+
+		Point2D.Float bestPoint = applyTemplateMatching(getPixelArray("kirsch.bmp"), getPixelArray("./template/temp1.bmp"));
+
+		BufferedImage inputImage = writeToImage(getPixelArray("kirsch.bmp"));
+		Graphics2D g2d = inputImage.createGraphics();
+		g2d.setBackground(Color.WHITE);
+		g2d.setColor(Color.RED);
+		BasicStroke bs = new BasicStroke(2);
+		g2d.setStroke(bs);
+
+
+					System.out.println("x: " + (int)bestPoint.x);
+					System.out.println("y: " + (int)bestPoint.y);
+					g2d.drawRect((int)bestPoint.x-2, (int)bestPoint.y-2, 20, 20);
+
+
+				    try{
+				      writeToFile(inputImage, "template.bmp");
+				    }catch(IOException e){
+				      e.printStackTrace();
+				    }
+
+}
 
 
 
@@ -110,16 +135,12 @@ class BitImage{
 		return arr;
 	}
 
-
-
   // Resizing Method
   private static BufferedImage resizeImage(BufferedImage inputImage, int width, int height){
-
     BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
     Graphics g = newImage.createGraphics();
     g.drawImage(inputImage, 0, 0, width, height, null);
     g.dispose();
-
     return newImage;
   }
 
@@ -141,10 +162,19 @@ class BitImage{
 	private static int[][] constrast(int[][] arr, int contrast, int brightness){
 		for (int i = 0; i < arr.length; i++){
 			for (int j = 0; j < arr[i].length; j++){
-				arr[i][j] = contrast*(arr[i][j] - brightness) + brightness;
+				//arr[i][j] = contrast*(arr[i][j] - brightness) + brightness;
+				if(arr[i][j] > 157)
+					arr[i][j] += 20;
+				if(arr[i][j] < 157)
+					arr[i][j] -= 35;
+				if(arr[i][j] > 255)
+					arr[i][j] = 255;
+				if(arr[i][j] <0)
+					arr[i][j] = 0;
+
+
 			}
 		}
-
 		return arr;
 	}
 
@@ -1006,10 +1036,11 @@ private static int[][] applyThinning(int[][] arr) {
 
 	}
 
-/*
-  public static Point2D.Float applyTemplateMatching(int[][] arr) {
+
+  public static Point2D.Float applyTemplateMatching(int[][] arr, int[][] template) {
 
    System.out.println("Applying Template Matching...");
+	 System.out.println("Template Size is: " + template.length + " by " + template[0].length);
    int currentMaxRow = 3;
    int currentMaxColumn = 3;
    int currentStartRow = 0;
@@ -1020,7 +1051,7 @@ private static int[][] applyThinning(int[][] arr) {
    int minimumSumOfSquares = Integer.MAX_VALUE;
    Point2D.Float bestPoint = new Point2D.Float(0,0);
 
-
+	 System.out.println("min: " + minimumSumOfSquares);
    while(currentMaxRow < arr.length)
    {
      while(currentMaxColumn < arr[0].length)
@@ -1035,11 +1066,14 @@ private static int[][] applyThinning(int[][] arr) {
            int pixelValueOfImage = arr[i][j];
            int pixelValueOfTemplate = template[kernelRow][kernelColumn];
 
-           sumOfSquares = Math.pow((double)Math.abs(pixelValueOfTemplate - pixelValueOfImage), 2.0);
+           sumOfSquares = (int) Math.pow((double)Math.abs(pixelValueOfTemplate - pixelValueOfImage), 2.0);
          }
        }
 
+			 //System.out.println("Current Sum Of Squares: " + sumOfSquares);
+			 //System.out.println("Current min: " + minimumSumOfSquares);
        if(sumOfSquares < minimumSumOfSquares){
+				 System.out.println("Changed!");
          minimumSumOfSquares = sumOfSquares;
          bestPoint.setLocation(currentStartRow + 1, currentStartColumn + 1);
        }
@@ -1057,7 +1091,6 @@ private static int[][] applyThinning(int[][] arr) {
    return bestPoint;
   }
 
-  */
 
 	/**
 	 * Start of public methods for GUI
