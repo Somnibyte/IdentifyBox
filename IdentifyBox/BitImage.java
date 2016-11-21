@@ -21,7 +21,9 @@ import java.io.*;
 import javax.imageio.*;
 import java.util.Arrays;
 import java.util.List;
- import java.util.ArrayList;
+import java.util.ArrayList;
+import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Float;
 
 class BitImage{
 
@@ -35,7 +37,12 @@ class BitImage{
 		String output_file_constrast = "lap.bmp";
 		String outfile_file_kirschEdge = "smoothing_with_kirschEdge.bmp";
 
-/*
+
+    String box1 = "./input/box1.bmp";
+    String box2 = "./input/box2.bmp";
+    String box3 = "./input/box3.bmp";
+
+    /*
 		System.out.println("Reading an bitmap image" + input_file);
 		System.out.println("Printing the file in [0-255] range " + input_file);
 		//printPixelArray(getPixelArray(filename));
@@ -59,10 +66,10 @@ class BitImage{
     //BufferedImage newImg = resizeImage(img, 200,200);
     //writeToFile(newImg, "small.bmp");
 
+      writeToFile(writeToImage(smooth(getPixelArray(box3), 3,3)), "smooth2.bmp");
+      writeToFile(writeToImage(constrast(getPixelArray("smooth2.bmp"),3,127)), "contrast2.bmp");
+      writeToFile(writeToImage(kirschEdge(getPixelArray("contrast2.bmp"))), "kirsch2.bmp");
 
-    // Thinning test
-    writeToFile(writeToImage(kirschEdge(smooth(getPixelArray(input_file), 3, 3))), "edge.bmp");
-    writeToFile(writeToImage(applyThinning(kirschEdge(smooth(getPixelArray(input_file), 3, 3)))), "thin1.bmp");
 	}
 
 
@@ -116,7 +123,21 @@ class BitImage{
     return newImage;
   }
 
-	// Contrast Adjustment
+  // Darken Adjustment
+	private static int[][] darken(int[][] arr, int darkenFactor){
+		for (int i = 0; i < arr.length; i++){
+			for (int j = 0; j < arr[i].length; j++){
+				arr[i][j] -= darkenFactor;
+				//correction
+				if(arr[i][j] < 0)
+					arr[i][j] = 0;
+			}
+		}
+
+		return arr;
+	}
+
+  // Contrast Adjustment
 	private static int[][] constrast(int[][] arr, int contrast, int brightness){
 		for (int i = 0; i < arr.length; i++){
 			for (int j = 0; j < arr[i].length; j++){
@@ -985,6 +1006,58 @@ private static int[][] applyThinning(int[][] arr) {
 
 	}
 
+/*
+  public static Point2D.Float applyTemplateMatching(int[][] arr) {
+
+   System.out.println("Applying Template Matching...");
+   int currentMaxRow = 3;
+   int currentMaxColumn = 3;
+   int currentStartRow = 0;
+   int currentStartColumn = 0;
+   int kernelColumn = 0;
+   int kernelRow = 0;
+   int sumOfSquares = 0;
+   int minimumSumOfSquares = Integer.MAX_VALUE;
+   Point2D.Float bestPoint = new Point2D.Float(0,0);
+
+
+   while(currentMaxRow < arr.length)
+   {
+     while(currentMaxColumn < arr[0].length)
+     {
+       for(int i=currentStartRow; i<currentMaxRow; i++)
+       {
+         for(int j=currentStartColumn; j<currentMaxColumn; j++)
+         {
+           kernelColumn = j%3;
+           kernelRow = i%3;
+
+           int pixelValueOfImage = arr[i][j];
+           int pixelValueOfTemplate = template[kernelRow][kernelColumn];
+
+           sumOfSquares = Math.pow((double)Math.abs(pixelValueOfTemplate - pixelValueOfImage), 2.0);
+         }
+       }
+
+       if(sumOfSquares < minimumSumOfSquares){
+         minimumSumOfSquares = sumOfSquares;
+         bestPoint.setLocation(currentStartRow + 1, currentStartColumn + 1);
+       }
+
+       currentStartColumn += 1;
+       currentMaxColumn += 1;
+     }
+     currentStartRow += 1;
+     currentMaxRow += 1;
+     currentMaxColumn = 3;
+     currentStartColumn = 0;
+   }
+
+
+   return bestPoint;
+  }
+
+  */
 
 	/**
 	 * Start of public methods for GUI
