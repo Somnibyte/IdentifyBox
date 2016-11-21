@@ -74,7 +74,7 @@ class BitImage{
 
 		ArrayList<Point2D.Float> pointArr = new ArrayList<Point2D.Float>();
 
-		Point2D.Float bestPoint = applyTemplateMatching(getPixelArray("kirsch.bmp"), getPixelArray("./template/temp7.bmp"));
+		Point2D.Float bestPoint = applyTemplateMatching(getPixelArray("kirsch.bmp"), getPixelArray("./template/temp4.bmp"));
 		// 784, 580
 		BufferedImage inputImage = writeToImage(getPixelArray("kirsch.bmp"));
 		Graphics2D g2d = inputImage.createGraphics();
@@ -1048,7 +1048,7 @@ private static int[][] applyThinning(int[][] arr) {
    int kernelColumn = 0;
    int kernelRow = 0;
    int sumOfSquares = 0;
-   int minimumSumOfSquares = Integer.MAX_VALUE;
+   int currentMaxSum = Integer.MIN_VALUE;
    Point2D.Float bestPoint = new Point2D.Float(0,0);
 
    while(currentMaxRow < arr.length)
@@ -1069,10 +1069,10 @@ private static int[][] applyThinning(int[][] arr) {
 				 }
        }
 
-			 if(sumOfSquares < minimumSumOfSquares)
+			 if(sumOfSquares > currentMaxSum)
 			 {
-				 minimumSumOfSquares = sumOfSquares;
-				 System.out.println("Current Min: " + minimumSumOfSquares);
+				 currentMaxSum = sumOfSquares;
+				 System.out.println("Current Max: " + currentMaxSum);
 				 sumOfSquares = 0;
 				 bestPoint.setLocation(currentStartRow + 1, currentStartColumn + 1);
 			 }
