@@ -74,8 +74,8 @@ class BitImage{
 
 		ArrayList<Point2D.Float> pointArr = new ArrayList<Point2D.Float>();
 
-		Point2D.Float bestPoint = applyTemplateMatching(getPixelArray("kirsch.bmp"), getPixelArray("./template/temp4.bmp"));
-
+		Point2D.Float bestPoint = applyTemplateMatching(getPixelArray("kirsch.bmp"), getPixelArray("./template/temp7.bmp"));
+		// 784, 580
 		BufferedImage inputImage = writeToImage(getPixelArray("kirsch.bmp"));
 		Graphics2D g2d = inputImage.createGraphics();
 		g2d.setBackground(Color.WHITE);
@@ -1040,7 +1040,7 @@ private static int[][] applyThinning(int[][] arr) {
   public static Point2D.Float applyTemplateMatching(int[][] arr, int[][] template) {
 
    System.out.println("Applying Template Matching...");
-	 //System.out.println("Template Size is: " + template.length + " by " + template[0].length);
+	 System.out.println("Template Size is: " + template.length + " by " + template[0].length);
    int currentMaxRow = template.length;
    int currentMaxColumn = template[0].length;
    int currentStartRow = 0;
@@ -1051,7 +1051,6 @@ private static int[][] applyThinning(int[][] arr) {
    int minimumSumOfSquares = Integer.MAX_VALUE;
    Point2D.Float bestPoint = new Point2D.Float(0,0);
 
-	 System.out.println("min: " + minimumSumOfSquares);
    while(currentMaxRow < arr.length)
    {
      while(currentMaxColumn < arr[0].length)
@@ -1060,24 +1059,25 @@ private static int[][] applyThinning(int[][] arr) {
        {
          for(int j=currentStartColumn; j<currentMaxColumn; j++)
          {
-           kernelColumn = j%template[0].length;
-           kernelRow = i%template.length;
+					  kernelColumn = j%template[0].length;
+						kernelRow = i%template.length;
 
-           int pixelValueOfImage = arr[i][j];
-           int pixelValueOfTemplate = template[kernelRow][kernelColumn];
+						int pixelValueOfImage = arr[i][j];
+						int pixelValueOfTemplate = template[kernelRow][kernelColumn];
+						sumOfSquares += (int) Math.pow((double)Math.abs(pixelValueOfTemplate - pixelValueOfImage), 2.0);
 
-           sumOfSquares += (int) Math.pow((double)Math.abs(pixelValueOfTemplate - pixelValueOfImage), 2.0);
-         }
+				 }
        }
 
-			 System.out.println("Current Sum Of Squares: " + sumOfSquares);
-			 //System.out.println("Current min: " + minimumSumOfSquares);
-       if(sumOfSquares < minimumSumOfSquares){
-				 //System.out.println("Changed!");
-         minimumSumOfSquares = sumOfSquares;
-         bestPoint.setLocation(currentStartRow + 1, currentStartColumn + 1);
+			 if(sumOfSquares < minimumSumOfSquares)
+			 {
+				 minimumSumOfSquares = sumOfSquares;
+				 System.out.println("Current Min: " + minimumSumOfSquares);
 				 sumOfSquares = 0;
-       }
+				 bestPoint.setLocation(currentStartRow + 1, currentStartColumn + 1);
+			 }
+
+			 sumOfSquares = 0;
 
        currentStartColumn += 1;
        currentMaxColumn += 1;
@@ -1088,7 +1088,6 @@ private static int[][] applyThinning(int[][] arr) {
      currentStartColumn = 0;
    }
 
-	 //System.out.print("final sum: " + minimumSumOfSquares);
    return bestPoint;
   }
 
