@@ -74,7 +74,7 @@ class BitImage{
 
 		ArrayList<Point2D.Float> pointArr = new ArrayList<Point2D.Float>();
 
-		Point2D.Float bestPoint = applyTemplateMatching(getPixelArray("kirsch.bmp"), getPixelArray("./template/temp4.bmp"));
+		Point2D.Float bestPoint = applyTemplateMatching(getPixelArray("kirsch.bmp"), getPixelArray("test.bmp"));
 		// 784, 580
 		BufferedImage inputImage = writeToImage(getPixelArray("kirsch.bmp"));
 		Graphics2D g2d = inputImage.createGraphics();
@@ -1048,45 +1048,34 @@ private static int[][] applyThinning(int[][] arr) {
    int kernelColumn = 0;
    int kernelRow = 0;
    int sumOfSquares = 0;
-   int currentMaxSum = Integer.MIN_VALUE;
+   int currentMaxSum = Integer.MAX_VALUE;
    Point2D.Float bestPoint = new Point2D.Float(0,0);
 
-   while(currentMaxRow < arr.length)
-   {
-     while(currentMaxColumn < arr[0].length)
-     {
-       for(int i=currentStartRow; i<currentMaxRow; i++)
-       {
-         for(int j=currentStartColumn; j<currentMaxColumn; j++)
-         {
-					  kernelColumn = j%template[0].length;
-						kernelRow = i%template.length;
+		// loop through the search image
+		for ( int x = 0; x <= arr.length - template.length; x++ ) {
+		    for ( int y = 0; y <= arr[0].length - template[0].length; y++ ) {
+		        sumOfSquares = 0;
 
-						int pixelValueOfImage = arr[i][j];
-						int pixelValueOfTemplate = template[kernelRow][kernelColumn];
-						sumOfSquares += (int) Math.pow((double)Math.abs(pixelValueOfTemplate - pixelValueOfImage), 2.0);
+		        // loop through the template image
+		        for ( int j = 0; j < template[0].length; j++ )
+		            for ( int i = 0; i < template.length; i++ ) {
 
-				 }
-       }
+		              	int p_SearchIMG = arr[x+i][y+j];
+		                int p_TemplateIMG = template[i][j];
 
-			 if(sumOfSquares > currentMaxSum)
-			 {
-				 currentMaxSum = sumOfSquares;
-				 System.out.println("Current Max: " + currentMaxSum);
-				 sumOfSquares = 0;
-				 bestPoint.setLocation(currentStartRow + 1, currentStartColumn + 1);
-			 }
+		                sumOfSquares += Math.abs( p_SearchIMG - p_TemplateIMG);
+		            }
 
-			 sumOfSquares = 0;
+		        // save the best found position
+		        if ( currentMaxSum > sumOfSquares ) {
+		            currentMaxSum = sumOfSquares;
+								System.out.println("current min: "+ currentMaxSum);
+		            // give me min SAD
+								bestPoint.setLocation(x, y);
+		        }
+		    }
 
-       currentStartColumn += 1;
-       currentMaxColumn += 1;
-     }
-     currentStartRow += 1;
-     currentMaxRow += 1;
-     currentMaxColumn = template[0].length;
-     currentStartColumn = 0;
-   }
+		}
 
    return bestPoint;
   }
