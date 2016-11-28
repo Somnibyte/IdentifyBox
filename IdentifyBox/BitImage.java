@@ -33,7 +33,7 @@ class BitImage{
 	public static void main(String[] args) throws IOException, RuntimeException{
 
 		// Files to play with
-		String input_file = "./input/im1-c.bmp";
+		String input_file = "./input/im2-c.bmp";
 		String output_file_constrast = "lap.bmp";
 		String outfile_file_kirschEdge = "smoothing_with_kirschEdge.bmp";
 
@@ -62,21 +62,18 @@ class BitImage{
     //drawLinesFromAccum(hough, img, getPixelArray(input_file));
 
     // Resize Code Test
-    //BufferedImage img = writeToImage(getPixelArray(input_file));
-    //BufferedImage newImg = resizeImage(img, 200,200);
-    //writeToFile(newImg, "small.bmp");
-
-		writeToFile(writeToImage(constrast(darken(getPixelArray(input_file), 90), 2,1)), "contrast.bmp");
-		writeToFile(writeToImage(smooth(getPixelArray("contrast.bmp"), 6,6)), "smooth.bmp");
-		writeToFile(writeToImage(kirschEdge(getPixelArray("smooth.bmp"))), "kirsch.bmp");
+		/*
+    BufferedImage img = writeToImage(getPixelArray("./mainImages/thin1.bmp"));
+    BufferedImage newImg = resizeImage(img, 200,200);
+    writeToFile(newImg, "small.bmp");
+		*/
 
 		// Template Matching Test
-
 		ArrayList<Point2D.Float> pointArr = new ArrayList<Point2D.Float>();
 
-		Point2D.Float bestPoint = applyTemplateMatching(getPixelArray("kirsch.bmp"), getPixelArray("test.bmp"));
+		Point2D.Float bestPoint = applyTemplateMatching(getPixelArray("./mainImages/thin1.bmp"), getPixelArray("./template/temp5.bmp"));
 		// 784, 580
-		BufferedImage inputImage = writeToImage(getPixelArray("kirsch.bmp"));
+		BufferedImage inputImage = writeToImage(getPixelArray("./mainImages/thin1.bmp"));
 		Graphics2D g2d = inputImage.createGraphics();
 		g2d.setBackground(Color.WHITE);
 		g2d.setColor(Color.BLACK);
@@ -86,14 +83,16 @@ class BitImage{
 
 					System.out.println("x: " + (int)bestPoint.x);
 					System.out.println("y: " + (int)bestPoint.y);
-					g2d.drawRect((int)bestPoint.x-2, (int)bestPoint.y-2, 20, 20);
+					g2d.drawRect((int)bestPoint.x-2, (int)bestPoint.y-2, 200, 200);
 
 
-				    try{
-				      writeToFile(inputImage, "template.bmp");
-				    }catch(IOException e){
-				      e.printStackTrace();
-				    }
+						try{
+							writeToFile(inputImage, "template.bmp");
+						}catch(IOException e){
+							e.printStackTrace();
+						}
+
+
 
 }
 
@@ -163,7 +162,7 @@ class BitImage{
 		for (int i = 0; i < arr.length; i++){
 			for (int j = 0; j < arr[i].length; j++){
 				//arr[i][j] = contrast*(arr[i][j] - brightness) + brightness;
-				if(arr[i][j] > 157)
+				if(arr[i][j] > 170)
 					arr[i][j] += 20;
 				if(arr[i][j] < 157)
 					arr[i][j] -= 35;
