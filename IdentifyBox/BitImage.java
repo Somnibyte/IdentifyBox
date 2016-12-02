@@ -33,7 +33,7 @@ class BitImage{
 	public static void main(String[] args) throws IOException, RuntimeException{
 
 		// Files to play with
-		String input_file = "./input/im2-c.bmp";
+		String input_file = "./input/im1-c.bmp";
 		String output_file_constrast = "lap.bmp";
 		String outfile_file_kirschEdge = "smoothing_with_kirschEdge.bmp";
 
@@ -68,12 +68,16 @@ class BitImage{
     writeToFile(newImg, "small.bmp");
 		*/
 
+		writeToFile(writeToImage(constrast(darken(getPixelArray(input_file), 90), 2,1)), "contrast.bmp");
+		writeToFile(writeToImage(smooth(getPixelArray("contrast.bmp"), 6,6)), "smooth.bmp");
+		writeToFile(writeToImage(kirschEdge(getPixelArray("smooth.bmp"))), "kirsch.bmp");
+
 		// Template Matching Test
 		ArrayList<Point2D.Float> pointArr = new ArrayList<Point2D.Float>();
 
-		Point2D.Float bestPoint = applyTemplateMatching(getPixelArray("./mainImages/thin1.bmp"), getPixelArray("./template/temp5.bmp"));
+		Point2D.Float bestPoint = applyTemplateMatching(getPixelArray("kirsch.bmp"), getPixelArray("test.bmp"));
 		// 784, 580
-		BufferedImage inputImage = writeToImage(getPixelArray("./mainImages/thin1.bmp"));
+		BufferedImage inputImage = writeToImage(getPixelArray("kirsch.bmp"));
 		Graphics2D g2d = inputImage.createGraphics();
 		g2d.setBackground(Color.WHITE);
 		g2d.setColor(Color.BLACK);
