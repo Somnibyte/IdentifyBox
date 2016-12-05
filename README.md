@@ -1,13 +1,12 @@
-# README
+## Identify Box Visual System (IBVS)
+The objective of this program was to identify boxes in grayscale images. 
+
+# [The Paper](https://github.com/Somnibyte/IdentifyBox/blob/master/IBVS.docx?raw=true)
 
 # Authors 
 * [Eddie Olson](https://github.com/laserutouettal) 💾
 * Guled Ahmed 🐨 
 * [Okusanya Damilola](https://github.com/castellanprime) 💀
-
-
-## Identify Box Visual System (IBVS)
-The objective of this program was to identify boxes in grayscale images. 
 
 ### (Example of identified box)
 ![](http://i.imgur.com/DT3cIgl.png)
