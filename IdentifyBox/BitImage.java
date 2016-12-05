@@ -75,9 +75,9 @@ class BitImage{
 		// Template Matching Test
 		ArrayList<Point2D.Float> pointArr = new ArrayList<Point2D.Float>();
 
-		Point2D.Float bestPoint = applyTemplateMatching(getPixelArray("kirsch.bmp"), getPixelArray("test.bmp"));
+		Point2D.Float bestPoint = applyTemplateMatching(getPixelArray("./mainImages/thin4.bmp"), getPixelArray("./template/temptemp.bmp"));
 		// 784, 580
-		BufferedImage inputImage = writeToImage(getPixelArray("kirsch.bmp"));
+		BufferedImage inputImage = writeToImage(getPixelArray("./mainImages/thin4.bmp"));
 		Graphics2D g2d = inputImage.createGraphics();
 		g2d.setBackground(Color.WHITE);
 		g2d.setColor(Color.BLACK);
@@ -91,7 +91,7 @@ class BitImage{
 
 
 						try{
-							writeToFile(inputImage, "template.bmp");
+							writeToFile(inputImage, "template2.bmp");
 						}catch(IOException e){
 							e.printStackTrace();
 						}
