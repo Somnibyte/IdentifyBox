@@ -5,7 +5,7 @@ The objective of this program was to identify boxes in grayscale images.
 
 # Authors 
 * [Eddie Olson](https://github.com/laserutouettal) 💾
-* Guled Ahmed 🐨 
+* [Guled Ahmed](https://github.com/Somnibyte) 🐨 
 * [Okusanya Damilola](https://github.com/castellanprime) 💀
 
 ### (Example of identified box)
